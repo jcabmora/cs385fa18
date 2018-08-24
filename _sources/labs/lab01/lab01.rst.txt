@@ -1,0 +1,212 @@
+****************************************************
+Lab No. 01: Deploying an Application to Google Cloud
+****************************************************
+
+The purpose of this Lab is to familiarize students with the tools available within the Google Cloud Platform.
+
+This lab assumes that you have already completed the account registration process and that you have access to the Google Cloud Platform Console.
+
+
+Deploying a Virtual Machine
+===========================
+
+In this section you will create a virtual machine and deploy a simple service.
+
+#. Login to the Google Cloud Platform Console
+#. On the Left Navigation Bar, from the **COMPUTE** section, select **Compute Engine > VM Instances**. This operation might take a minute or two the first time.  You will be presented with the following dialog
+
+    .. image:: emptyinstances_dialog.png
+
+#. Click **Create**.  This might take a minute or two the first time. You will be presented with the **Create an instance** dialog.  
+#. Provide a name for your instance. Since this is the first lab, ``lab-1`` is probably a reasonable name.
+#. You need to select a Region and a Zone.  Read the documentation about zones (https://cloud.google.com/compute/docs/regions-zones/).  Select zone ``us-west1-a``.
+#. Notice the diffent options that are available for **Machine Type**.  Click on the **Customize** link and inspect the different options that are available.  Also notice that the selections you make determine the cost per hour of the instance.
+#. For this lab we are going to create an instance of the lowest possible cost. Go back to the **Basic View**, and select **micro (1 shared vCPU/0.6 GB memory)**
+#. Under **Boot Disk**, chick on "Change", and notice that you are provided with several preconfigured images.  Select ubuntu 16.04 LTS, using a standard persistent disk of 10 GB.  
+#. Under **Firewall**, enable both HTTP and HTTPS traffic.
+#. Under **Management** provide a meaningful description of your own choice.
+#. Let the options under **Disks**, **Networking** amd **SSH Keys** default.
+#. Notice at the bottom of the page there is a link **Equivalent REST or command line**.  Copy those values and save them.  We will provision another Virtual Machine in the second part of the lab using the command line instead of the Web user interface.
+#. Click on **Create**.  Wait for a couple of minutes.  Once this has completed, you should see the newly created instance on the "VM Instances" Console:
+
+
+.. image:: newvm.png
+
+Access to the Virtual Machine
+=============================
+
+
+Browser access
+--------------
+
+You can get shell access to the newly created Virtual Machine through the Google Cloud Platform web interface.  Select the "Open in browser window" option from the "Connect" drop down menu:
+
+.. image:: ssh-browser.png
+
+This will open an SSH session that runs on a browser.
+
+
+Command Line SSH Access
+-----------------------
+
+In order to be able to connect to the Virtual machine you just created using a local terminal (i.e. in the computer that you are currently using), you need first to set up a pair of SSH keys.
+Note that anyone that gets access to your SSH private keys will potentially able to get access to your machine(s), so you need to be very careful to not leave your private keys on systems that are accessible to others.
+It is highly encouraged to use a passphrase when creating your keys, and if you are doing this lab on a public/shared machine (e.g. one of SSU labs) make sure that the keys are stored in a directory that is only accessible to you.
+
+#. Open a terminal in your local computer and use the ``ssh-keygen`` command to generate a new key pair.  Make sure that you provide a `-C` parameter which is used by Google Cloud Platform to identify the user (replace *<YOUR-USER>* with your own)
+
+    .. parsed-literal::
+        > ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_gcp -C <YOUR-USER>
+
+#. Upload the public key: While on the **Compute Engine** dashboard, select the **Metadata** option from the left navigation menu (you can go directly by entering this URL https://console.cloud.google.com/compute/metadata/sshKeys). Click on **Edit**, **+ Add Item** and paste the contents of your public key.  Using the example keys that were generated earlier, this will be the content of the `/home/you/.ssh/id_gcp.pub` file.
+
+#. Save.  Test your using ssh on your terminal:
+
+    .. parsed-literal::
+        > ssh -i~/.ssh/id_gcp <YOUR-USER>@<YOUR-VM-IPADDRESS>
+
+Deploy a web application
+------------------------
+
+Now that your virtual machine is running, you will setup and deploy a simple application that lets you register an account.
+
+
+Install MySQL
+~~~~~~~~~~~~~
+
+The application that we are going to deploy requires a SQL database. In this section we are going to install mysql in the same Virtual Machine that was created in the previous step.
+
+#. Log into the Virtual Machine if you haven't already.
+
+#. Install the mysql-server package. During the installation you will be prompted for the root password. Input a password of your choice, just make sure you'll remember it since you'll need it later.
+
+    .. parsed-literal::
+        > sudo apt-get update
+        > sudo apt-get install -y mysql-server 
+
+#. We now need to create the database tables that our application will use. First login into a mysql session:
+
+    .. parsed-literal::
+        > mysql -uroot -p<YOUR-PASSWORD>
+        mysql>
+
+#. Once on the mysql session (you can verify by the ``mysql>`` prompt) create a database called ``minibank``:
+
+    .. parsed-literal::
+        mysql> CREATE DATABASE minibank;
+		Query OK, 0 rows affected (0.02 sec)
+
+#. Activate the ``minibank`` database and create the ``account`` table:
+
+    .. parsed-literal::
+        mysql> use minibank;
+        Database changed
+        mysql> CREATE TABLE account (
+            ->     id INTEGER NOT NULL AUTO_INCREMENT,
+            ->     username CHAR(30) NOT NULL,
+            ->     password CHAR(32) NOT NULL,
+            ->     salt CHAR(32) NOT NULL,
+            ->     timestamp INT UNSIGNED NOT NULL,
+            ->     PRIMARY KEY(id),
+            ->     UNIQUE KEY(username)
+            -> ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        Query OK, 0 rows affected (0.03 sec)
+
+#. Confirm that the table was created correctly:
+
+   .. parsed-literal::
+       mysql> describe account;
+       +-----------+------------------+------+-----+---------+----------------+
+       | Field     | Type             | Null | Key | Default | Extra          |
+       +-----------+------------------+------+-----+---------+----------------+
+       | id        | int(11)          | NO   | PRI | NULL    | auto_increment |
+       | username  | char(30)         | NO   | UNI | NULL    |                |
+       | password  | char(32)         | NO   |     | NULL    |                |
+       | salt      | char(32)         | NO   |     | NULL    |                |
+       | timestamp | int(10) unsigned | NO   |     | NULL    |                |
+       +-----------+------------------+------+-----+---------+----------------+
+       5 rows in set (0.00 sec)
+
+
+
+#. Create the ``minibank`` user. You can use a different password for this account by specifying a different argument to the ``IDENTIFIED BY`` clause:
+
+    .. parsed-literal::
+        mysql> CREATE USER 'minibank'@'%' IDENTIFIED BY 'minibank';
+        Query OK, 0 rows affected (0.00 sec)
+
+        mysql> GRANT ALL PRIVILEGES ON minibank.* TO 'minibank'@'%';
+        Query OK, 0 rows affected (0.01 sec)
+
+        mysql> FLUSH PRIVILEGES;
+        Query OK, 0 rows affected (0.02 sec)
+
+
+#. You can confirm that the user was created correctly by issuing the following statement:
+
+    .. parsed-literal::
+        mysql> SELECT user FROM mysql.user WHERE user = 'minibank';
+        +----------+
+        | user     |
+        +----------+
+        | minibank |
+        +----------+
+        1 row in set (0.00 sec)
+        
+        mysql> show grants for 'minibank';
+        +--------------------------------------------------------+
+        | Grants for minibank@%                                  |
+        +--------------------------------------------------------+
+        | GRANT USAGE ON \*.\* TO 'minibank'@'%'                   |
+        | GRANT ALL PRIVILEGES ON `minibank`.* TO 'minibank'@'%' |
+        +--------------------------------------------------------+
+        2 rows in set (0.00 sec)
+
+
+Install the application
+
+
+Run a Linux Container
+---------------------
+
+
+Install Docker on the newly created machine:
+
+#. Execute the following commands:
+
+	.. parsed-literal::
+		sudo apt-get install apt-transport-https ca-certificates curl software-properties-common
+		curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+		sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+		sudo apt-get update
+		sudo apt-get install docker-ce
+
+#. Test your installation
+	
+	.. parsed-literal::
+		sudo docker run hello-world
+
+#. Run apache webserver container in the background
+
+	.. parsed-literal::
+		sudo docker run -d -p 80:80 httpd
+
+#. Verify the container is running
+
+	.. parsed-literal::
+		sudo docker ps
+
+
+#. Open a web browser and browse to the External IP Address of your Virtual Machine
+
+Stop the Virtual Machine
+========================
+
+Once you have finished the previous steps, go back to the **VM instance dashboard** and stop the instance.
+
+
+Report
+======
+
+#. Contrast the process of provisioning a physical server versus the process of creating a VM instance.  Evaluate the pros and cons of each.
+

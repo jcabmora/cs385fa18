@@ -1,0 +1,204 @@
+Lab No. 03: Automating Deployment with REST APIs
+================================================
+
+
+In Lab 02 we learned how to run and scale a very simple REST API. It is hard to imagine that a company could function if they had to manually provision (or decommission) every instance using the same method.  Companies rely heavily on automation to provision instances very quickly, with the correct software, with minimal human intervention.
+
+In this part of the lab we are going to learn how to do this with the Google Cloud API.  Most other Cloud Platform providers such as Amazon, Heroku and Digital Ocean have similar offerings.
+
+
+Create a Controller Host
+------------------------
+
+#. Find out your Google Cloud project Id. Click **Home** and you will be presented with a dashboard that will contain the project info.  
+
+#. We are going to drive all tasks from a host in Google Cloud.  Create a new **Ubuntu 16.04 LTS** micro instance (You do not need to enable HTTP or HTTPS traffic for this instance).  Name this instance **lab03-controller**.  In access scopes, make sure you selece **Allow ful access to all Cloud APIs**
+
+    .. image:: lab03-controller.png
+
+
+#. SSH into **lab03-controller** and run the following commands to install pip (a python package manager) and install the google cloud python library
+
+    .. parsed-literal::
+        >> sudo apt-get install -y python-pip
+        >> sudo pip install --upgrade google-cloud google-api-python-client google-auth-httplib2
+        
+#. Create a directory to hold the code that you will write for this lab:
+
+    .. parsed-literal::
+        >> mkdir lab03
+        >> cd lab03
+
+
+Enable credentials
+------------------
+
+
+#. In the Google Cloud Platform web UI, from the left drop down menu select **APIs and Services >> Credentials**. Click on **Create Credentials** and select **Service Account Key**:
+
+#. On the **Create Service account key** prompt, select your default Service account, and select a key of type **JSON**, and click **Create**.  This will download a API key file (with a ``.json`` extension)to your workstation. **SAVE THIS FILE ON A SAFE PLACE THAT IS ONLY ACCESSIBLE TO YOU**.
+
+#. Copy that API file to the ``lab03`` directory as ``apikey.json`` in **lab03-controller**.
+
+#. We need to configure in **lab03-controller**  an environment variable named ``GOOGLE_APPLICATION_CREDENTIALS`` with a value equal to the location of the key file. For example, the folowing commands ads the file ``~/lab03/apikey.json`` to your ``.bash_profile``
+
+    .. parsed-literal::
+        >> echo "export GOOGLE_APPLICATION_CREDENTIALS=~/apikey.json" > ~/.bash_profile
+
+#. Logout and log back in and verify that the ``GOOGLE_APPLICATION_CREDENTIALS`` is part of your environment.
+
+
+
+
+Use the Google Cloud Compute Python API
+---------------------------------------
+
+
+#. Start an interactive Python session and create a variable to hold your project id:
+
+
+    .. parsed-literal::
+        >> python
+        Python 2.7.12 (default, Nov 19 2016, 06:48:10)
+        [GCC 5.4.0 20160609] on linux2
+        Type "help", "copyright", "credits" or "license" for more information.
+        >>> project_id = 'cs385-177320'
+
+#. In order to use the ``compute`` API, we need first to create an instance of the ``compute`` resource:
+
+    .. parsed-literal::
+        >>> import googleapiclient.discovery
+        >>> compute = googleapiclient.discovery.build('compute', 'v1')
+
+
+#. Let's start by looking at instance information. The ``instances`` API is documented at https://developers.google.com/resources/api-libraries/documentation/compute/v1/python/latest/compute_v1.instances.html.  We can do many operations with instances, for example we can obtain a list of instances in the ``us-west-c`` zone by executing this command (you might want to use a different zone, depending where your VMs reside):
+
+    .. parsed-literal::
+        >>> instances = compute.instances().list(project=project_id, zone='us-west1-c').execute() 
+        >>> [instance['name'] for instance in instances['items']]
+
+In the last example, the ``instances`` variable is a dictionary object that holds an element called ``items`` that has all the instance information.  For your reference, if you want to output all the details about a specific VM in human readable form, you can execute the following commands:
+
+	.. parsed-literal::
+
+		>>> import json
+		>>> print json.dumps(instances['items'][3], indent=4)
+		{
+			"status": "TERMINATED", 
+			"cpuPlatform": "Unknown CPU Platform", 
+			"kind": "compute#instance", 
+			"machineType": "https://www.googleapis.com/compute/v1/projects/cs385-177320/zones/us-west1-c/machineTypes/f1-micro", 
+			"description": "", 
+			"zone": "https://www.googleapis.com/compute/v1/projects/cs385-177320/zones/us-west1-c", 
+			"tags": {
+				"items": [
+					"http-server", 
+					"https-server"
+				], 
+				"fingerprint": "6smc4R4d39I="
+			}, 
+			"labelFingerprint": "42WmSpB8rSM=", 
+			"disks": [
+				{
+					"index": 0, 
+					"kind": "compute#attachedDisk", 
+					"autoDelete": true, 
+					"deviceName": "restserver-0", 
+					"boot": true, 
+					"source": "https://www.googleapis.com/compute/v1/projects/cs385-177320/zones/us-west1-c/disks/restserver-0", 
+					"interface": "SCSI", 
+					"mode": "READ_WRITE", 
+					"licenses": [
+						"https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/licenses/ubuntu-1604-xenial"
+					], 
+					"type": "PERSISTENT"
+				}
+			], 
+			"metadata": {
+				"kind": "compute#metadata", 
+				"fingerprint": "MrjwYBQhfvU="
+			}, 
+			"startRestricted": false, 
+			"scheduling": {
+				"automaticRestart": true, 
+				"preemptible": false, 
+				"onHostMaintenance": "MIGRATE"
+			}, 
+			"canIpForward": false, 
+			"serviceAccounts": [
+				{
+					"scopes": [
+						"https://www.googleapis.com/auth/devstorage.read_only", 
+						"https://www.googleapis.com/auth/logging.write", 
+						"https://www.googleapis.com/auth/monitoring.write", 
+						"https://www.googleapis.com/auth/servicecontrol", 
+						"https://www.googleapis.com/auth/service.management.readonly", 
+						"https://www.googleapis.com/auth/trace.append"
+					], 
+					"email": "684363694185-compute@developer.gserviceaccount.com"
+				}
+			], 
+			"networkInterfaces": [
+				{
+					"kind": "compute#networkInterface", 
+					"network": "https://www.googleapis.com/compute/v1/projects/cs385-177320/global/networks/default", 
+					"accessConfigs": [
+						{
+							"kind": "compute#accessConfig", 
+							"type": "ONE_TO_ONE_NAT", 
+							"name": "External NAT"
+						}
+					], 
+					"networkIP": "10.138.0.3", 
+					"subnetwork": "https://www.googleapis.com/compute/v1/projects/cs385-177320/regions/us-west1/subnetworks/default", 
+					"name": "nic0"
+				}
+			], 
+			"creationTimestamp": "2017-09-13T22:41:40.833-07:00", 
+			"id": "4880605815860865147", 
+			"selfLink": "https://www.googleapis.com/compute/v1/projects/cs385-177320/zones/us-west1-c/instances/restserver-0", 
+			"name": "restserver-0"
+		}
+
+
+The format of the return values of all the APIs is also available in the official documentation (refer to links provided).
+
+
+.. admonition:: Load Balancer Automation
+    :class: worksheet
+
+
+    Create a script or executable that takes the following arguments:
+
+    1) project id
+    2) zone
+    3) instance count
+
+
+    The script will perform the following tasks:
+
+    1) it will find all the instances (in all zones ) of the load balancers that we created in Lab No.2 and will scale them to the number of instances specified by the **instance_count** argument.  If instance_count is less than the number of running instances, then it will stop the instance that has been running for the longest time.  Note that during a scale up operation you might need to either start existing instances or create new ones.  Make sure also that your script allows scaling up to  a maximum number of instances of 10. If you need to scale down, you should not need to remove the instances, only to stop them.  Note that the instances should autostart the REST API server (You need to research what property of a VM allows you to do that)
+
+    2) Your script/executable should gather the internal IP Addresses of the running instances and update and reload the configuration of the load balancer accordingly.  You will probably need to execute an SSH command or shell command to be able do this.
+
+    You will need to upload the source code of the scripts or executables that you will implement.  You need to also include a markdown file called ``README.md`` were you explain the steps to compile or run your script. You can use any language that works best for you.  If you need to do any build automation, please use a Makefile.  If you need to install software or libraries, make sure that you include a shell script to perform installation tasks (the target being a VM with the same specs as ``lab03-controller``.
+
+
+Useful Links
+------------
+
+Setup API Keys: https://support.google.com/cloud/answer/6158862?hl=en
+
+Example to use application credentials: https://developers.google.com/identity/protocols/application-default-credentials
+
+Google Cloud Python API Client: https://developers.google.com/api-client-library/python/
+
+Google Cloud Python Tutorial: https://cloud.google.com/compute/docs/tutorials/python-guide
+
+Compute Engine Python API: https://developers.google.com/resources/api-libraries/documentation/compute/v1/python/latest/
+
+Google Cloud python package: https://googlecloudplatform.github.io/google-cloud-python/
+
+Markdown Tutorial: https://guides.github.com/features/mastering-markdown/
+
+

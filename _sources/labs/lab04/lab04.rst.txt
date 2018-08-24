@@ -1,0 +1,520 @@
+Lab No. 04: Messaging (Publisher/Subscriber Pattern)
+====================================================
+
+In this lab we are going to go through several stages to deploy a Websockets based Chat application. The end goal is to deploy a scalable application by means of applying the publisher/subscriber architectural pattern.  All the application components will be built and run using Docker.
+
+The detailed goals of this lab are:
+
+- Practice creating and optimizing Dockerfiles
+- Learn how to install and run Apache Kafka
+- Learn the basics of producing and consuming messages from Apacke Kafka
+- Learn how to interact with Apache Kafka in a programmatic way with Python
+- Create a Websockets Chat application
+- Apply the publisher/subscriber pattern to enable horizontal scalability to the Websockets Chat Application
+
+
+
+Building a Dockerfile: Apache Kafka
+-----------------------------------
+
+We are going to use `Apache Kafka <https://kafka.apache.org/>`_ as a message broker. 
+
+#. Create a new instance, with 1 vCPU, 3.75 GB RAM, Ubuntu 16.04 LTS with 10 GB. Check *Allow HTTP traffic* and *Allow HTTPS traffic*.  Name this instance **docker-0**
+
+#. SSH into **docker-0** and install Docker and docker-compose
+
+    .. parsed-literal::
+        > sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+        > curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+        > sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+        > sudo apt-get update
+        > sudo apt-get install -y docker-ce
+        > sudo curl -L https://github.com/docker/compose/releases/download/1.17.1/docker-compose-\`uname -s\`-\`uname -m\` -o /usr/local/bin/docker-compose
+        > sudo chmod +x /usr/local/bin/docker-compose
+
+#. Test your installation
+
+    .. parsed-literal::
+        > sudo docker run hello-world
+
+#. We are going to run Kafka and Zookeeper in docker containers.  Create a directory called ``kafka`` in your home(``~``) directory, and change into it. Create a ``Dockerfile`` with the following content:
+
+    .. parsed-literal::
+        FROM openjdk:8-jre
+
+        ENV KAFKA_VERSION 1.0.0
+        ENV KAFKA_SCALA_VERSION 2.11
+        ENV KAFKA_ARCH "kafka_$KAFKA_SCALA_VERSION-$KAFKA_VERSION.tgz"
+        ENV KAFKA_HOME /opt/kafka
+
+        WORKDIR /opt
+
+        RUN apt-get update
+        RUN apt-get install -y jq
+        RUN wget -O - $(wget -qO- https://www.apache.org/dyn/closer.cgi\\?as_json\\=1\\&path\\=/kafka/$KAFKA_VERSION/$KAFKA_ARCH | jq --raw-output '.preferred')kafka/$KAFKA_VERSION/$KAFKA_ARCH | tar zxf -
+        RUN mv /opt/kafka_$KAFKA_SCALA_VERSION-$KAFKA_VERSION $KAFKA_HOME
+        RUN sed -i 's/zookeeper.connect=localhost:2181/zookeeper.connect=zookeeper:2181/g' /opt/kafka/config/server.properties
+        RUN sed -i 's/broker.id=0/broker.id=-1/g' /opt/kafka/config/server.properties
+
+        CMD ["/opt/kafka/bin/kafka-server-start.sh", "/opt/kafka/config/server.properties"]
+
+
+#. Build the docker image:
+
+	.. parsed-literal::
+		> docker build -t kafka-cs385 .
+
+#. Run the ``docker images`` command. Notice how you have entries for the image that was just built and for the base image:
+
+    .. parsed-literal::
+        > docker images
+        REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+        kafka-cs385         latest              0d5561696173        35 seconds ago      664 MB
+        openjdk             8-jre               97c270c3cab0        2 weeks ago         538 MB
+
+
+#. Verfiy the image layers by using the ``docker history`` command. You should get an output like this:
+
+    .. parsed-literal::
+        > docker history kafka-cs385
+        IMAGE               CREATED              CREATED BY                                      SIZE                COMMENT
+        0d5561696173        About a minute ago   /bin/sh -c #(nop)  CMD ["/opt/kafka/bin/ka...   0 B
+        4708edf77a2e        About a minute ago   /bin/sh -c sed -i 's/broker.id=0/broker.id...   6.85 kB
+        0dfd12e9e45b        About a minute ago   /bin/sh -c sed -i 's/zookeeper.connect=loc...   6.85 kB
+        496d69696442        About a minute ago   /bin/sh -c mv /opt/kafka_$KAFKA_SCALA_VERS...   53.8 MB
+        70c00ed2c3d4        About a minute ago   /bin/sh -c wget -O - $(wget -qO- https://w...   53.8 MB
+        21d5ee624a56        2 minutes ago        /bin/sh -c apt-get install -y jq                2.81 MB
+        3c3ab697f892        2 minutes ago        /bin/sh -c apt-get update                       15.8 MB
+        2704476162d5        2 minutes ago        /bin/sh -c #(nop) WORKDIR /opt                  0 B
+        2e51884a69fe        2 minutes ago        /bin/sh -c #(nop)  ENV KAFKA_HOME=/opt/kafka    0 B
+        54fd776cf0eb        2 minutes ago        /bin/sh -c #(nop)  ENV KAFKA_ARCH=kafka_2....   0 B
+        599bc7dca00f        2 minutes ago        /bin/sh -c #(nop)  ENV KAFKA_SCALA_VERSION...   0 B
+        a0a0efd8b3c7        2 minutes ago        /bin/sh -c #(nop)  ENV KAFKA_VERSION=1.0.0      0 B
+        97c270c3cab0        2 weeks ago          /bin/sh -c /var/lib/dpkg/info/ca-certifica...   394 kB
+        <missing>           2 weeks ago          /bin/sh -c set -ex;   if [ ! -d /usr/share...   404 MB
+        <missing>           2 weeks ago          /bin/sh -c #(nop)  ENV CA_CERTIFICATES_JAV...   0 B
+        <missing>           2 weeks ago          /bin/sh -c #(nop)  ENV JAVA_DEBIAN_VERSION...   0 B
+        <missing>           2 weeks ago          /bin/sh -c #(nop)  ENV JAVA_VERSION=8u151       0 B
+        <missing>           2 weeks ago          /bin/sh -c #(nop)  ENV JAVA_HOME=/docker-j...   0 B
+        <missing>           2 weeks ago          /bin/sh -c ln -svT "/usr/lib/jvm/java-8-op...   33 B
+        <missing>           2 weeks ago          /bin/sh -c {   echo '#!/bin/sh';   echo 's...   87 B
+        <missing>           2 weeks ago          /bin/sh -c #(nop)  ENV LANG=C.UTF-8             0 B
+        <missing>           2 weeks ago          /bin/sh -c apt-get update && apt-get insta...   2.05 MB
+        <missing>           2 weeks ago          /bin/sh -c set -ex;  if ! command -v gpg >...   7.8 MB
+        <missing>           2 weeks ago          /bin/sh -c apt-get update && apt-get insta...   23.8 MB
+        <missing>           2 weeks ago          /bin/sh -c #(nop)  CMD ["bash"]                 0 B
+        <missing>           2 weeks ago          /bin/sh -c #(nop) ADD file:a71e077a42995a6...   100 MB
+
+#. In the previous command output, each line correspond to layers added during image builds. You can see that the last layers added correspond to the build steps from the Dockerfile we just built.  Compare the history of ``kafka-cs385`` with the history of ``openjdk:8-jre``.  How many layers were added by our Dockerfile? How much bigger MB is ``kafka-cs385`` when compared to ``openjdk:8-jre``?
+
+#. Before proceeding any further, we need to test that our image runs.  To do this, we first need to start a Zookeeper server.  To run zookeeper we are going to use the official `Apache Zookeeper Docker Image <https://hub.docker.com/_/zookeeper/>`_. To run it, use this command:
+
+    .. parsed-literal::
+        docker run -d --name zookeeper zookeeper:3.4.11
+
+
+#. Now that Zookeeper is running we can start Kafka:
+
+    .. parsed-literal::
+        docker run -d --link zookeeper --name kafka kafka-cs385
+
+#. Verify that both Kafka and Kookeeper are running by executing the ``docker ps`` command:
+
+    .. parsed-literal::
+        > docker ps
+        CONTAINER ID        IMAGE                COMMAND                  CREATED             STATUS              PORTS                          NAMES
+        6a76c10946f9        kafka-cs385          "/opt/kafka/bin/ka..."   7 seconds ago       Up 6 minutes                                       kafka
+        c53269318237        zookeeper:3.4.11     "/docker-entrypoin..."   4 hours ago         Up 4 hours          2181/tcp, 2888/tcp, 3888/tcp   zookeeper
+
+#. To test Kafka, we are going to log into the container. To do this, we will use the ``docker exec`` command in *interactive* mode:
+
+    .. parsed-literal::
+        > docker exec -it kafka bash
+        root\@6a76c10946f9:/opt\#
+
+#. Notice how your shell prompt changed, and it includes the container id as host name. You can now run commands that will be executed inside the container. We are going to do now several basic interactions with Kafka (refer to the `Apache Kafka Quickstart <https://kafka.apache.org/quickstart>`_ First create a topic:
+
+    .. parsed-literal::
+        root\@6a76c10946f9:/opt\# kafka/bin/kafka-topics.sh --create --zookeeper zookeeper:2181 --replication-factor 1 --partitions 1 --topic mytopic
+        Created topic "mytopic".
+
+#. Now we use the **Kafka console producer** to write some messages:
+
+    .. parsed-literal::
+        root\@6a76c10946f9:/opt\# kafka/bin/kafka-console-producer.sh --broker-list localhost:9092 --topic mytopic
+
+#.  Enter several lines of text and press :kbd:`Ctrl+C` to close the console producer. Now let's read those messages using the console consumer:
+
+    .. parsed-literal::
+        root\@6a76c10946f9:/opt\# kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic mytopic --from-beginning
+
+#. Notice how the messages that you created earlier are retrieved by the console consumer. Once all the messages are written to the terminal, press :kbd:`Ctrl+C` to terminate the console consumer.
+
+#. Exit the container (by using the exit command as you do with a normal SSH session). We now want to terminate the container by using the docker stop command:
+
+    .. parsed-literal::
+        docker stop kafka
+
+#. If you run the ``docker ps`` command, the container is not shown as running anymore. Nevertheless, the container still exists and it can be restarted.  Compare the output of ``docker ps`` with the same command but using the ``-a`` option which shows all the containers.  If we want to remove a container completely, then we must use the ``docker rm`` command:
+
+    .. parsed-literal::
+        docker rm kafka
+
+
+Dockerfile Optimization
+-----------------------
+
+#. The Dockerfile that we used works, but it generates an image that is rather big in size. We can reduce the size of the image by merging several instructions together. Merge all the **RUN** instructions into a single isntruction.  How much space do you save by doing this? Provide an updated Dockerfile in your report. Build this dockerfile and tag is as ``kafka-cs385:consolidated_run``:
+
+    .. parsed-literal::
+        > docker build -t kafka-cs385:consolidated_run .
+
+
+#. After you successfully build this new image, run it as we did before with the ``kafka-cs385`` image, and make sure that Kafka is working and you can create topics, produce messages and retrieve them.
+
+#. We can also reduce the amount of used space by removing the cache of installation utilities. Add a command to the **RUN** instruction to remove the ``apt`` cache.  Hint: The `Dockerfile best practices <https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practices/#run>`_ reference has very valuable information that can help you. Build this image and tag it as ``kafka-cs385:nocache``
+
+    .. parsed-literal::
+        > docker build -t kafka-cs385:nocache .
+
+#. As we did before, make sure that your image works and you can interact with topics.
+
+#. We can further reduce the size of our Kafka image by using a smaller base image.  The `OpenJDK official docker repository <https://hub.docker.com/_/openjdk/>`_ has many images that can be used. Typically, the *slim* versions are debian based images of much smaller size. Update the Dockerfile to use a *slim* base image. Note that you will need not only to update the base image, but you will probably need to install utilities that are no longer include in the base image and are needed to complete the installation of kafka. Build this image and tag is as ``kafka-cs385:slim``
+
+    .. parsed-literal::
+        > docker build -t kafka-cs385:slim .
+
+#. As before, make sure that your image works and you can interact with topics.
+
+#. After performing the previous optimizations, you can compare the sizes of the resulting images (your image sizes might differ a little bit, but should be very close to these values)
+
+    .. parsed-literal::
+        > docker images
+        REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+        kafka-cs385         slim                0c76aa21f306        5 minutes ago       263 MB
+        kafka-cs385         nocache             eda22e7be277        12 minutes ago      594 MB
+        kafka-cs385         consolidated_run    e9b0d0b69019        23 minutes ago      610 MB
+        kafka-cs385         latest              0d5561696173        30 minutes ago      664 MB
+        openjdk             8-jre               97c270c3cab0        2 weeks ago         538 MB
+        openjdk             8-jre-slim          837969d6f968        2 weeks ago         205 MB
+
+#. Optional: Instead of using an image based on debian, you can use an *alpine* base image to reduce the size of the image even more.  You will need to do some experimentation to figure out which utilities need to be installed to be able to install kafka, and also to run it.
+
+    .. parsed-literal::
+        > docker images
+        REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+        kafka-cs385         alpine              44ea7ee63d23        16 hours ago        144 MB
+        kafka-cs385         slim                0c76aa21f306        21 hours ago        263 MB
+        kafka-cs385         nocache             eda22e7be277        21 hours ago        594 MB
+        kafka-cs385         consolidated_run    e9b0d0b69019        22 hours ago        610 MB
+        kafka-cs385         latest              0d5561696173        22 hours ago        664 MB
+        zookeeper           3.4.11              09fe1e7c8f0f        11 days ago         146 MB
+        openjdk             8-jre               97c270c3cab0        2 weeks ago         538 MB
+        openjdk             8-jre-alpine        b36ec9de53a8        2 weeks ago         81.4 MB
+        openjdk             8-jre-slim          837969d6f968        2 weeks ago         205 MB
+
+
+Interacting with Apache Kafka
+-----------------------------
+In this section we are going to learn how to interact with Kafka programatically using the `pykafka <https://github.com/Parsely/pykafka>`_ python library.
+We are going to create a simple app that exposes a REST API that receives messages and writes them to Kafka topics.  We are then going to create another app that consumes those messages.
+
+
+#. SSH into **docker-0**. Create a new directory called ``kafkaclien`` and change into it.
+
+#. Create a file called ``app.py`` with the following content:
+
+    .. parsed-literal::
+        from flask import Flask, request, Response
+        from pykafka import KafkaClient
+
+
+        app = Flask(__name__)
+        client = KafkaClient(zookeeper_hosts="zookeeper")
+
+        # create topics
+
+        topics = ['deliveries', 'updates']
+
+        for item in topics:
+            client.topics[item]
+
+
+        @app.route("/kafka", methods=['POST'])
+        def write_message():
+            payload = request.get_json()
+            req_topic = payload['topic'].encode('utf-8')
+            req_message = payload['message'].encode('utf-8')
+            if req_topic in client.topics:
+                topic = client.topics[req_topic]
+                with topic.get_sync_producer(max_queued_messages=0, linger_ms=0) as producer:
+                    producer.produce(req_message)
+                return Response(response='{"msg": "Success"}', status=200, mimetype="application/json")
+            else:
+                return Response(response='{"msg": "Invalid Topic"}', status=400, mimetype="application/json")
+
+
+#. Create a file called ``requirements.txt`` with the following content:
+
+    .. parsed-literal::
+        Flask==0.12.2
+        pykafka==2.6.0
+
+
+
+#. Create a ``Dockerfile`` with the following contents:
+
+    .. parsed-literal::
+        FROM python:2.7-alpine3.6
+
+        COPY * /opt/kafkaclient/
+
+        WORKDIR /opt/kafkaclient
+
+        RUN apk add --no-cache g++ \
+            && pip install -r requirements.txt
+
+        ENV FLASK_APP app.py
+
+        CMD ["flask", "run", "--host=0.0.0.0", "--port=5000"]
+
+
+#. Once all these files have been created, the directory tree of ``kafkaclient`` should look like this:
+
+	.. parsed-literal::
+
+		kafkaclient
+		   ├── app.py
+		   ├── Dockerfile
+		   └── requirements.txt
+
+#. Build the image:
+
+    .. parsed-literal::
+        docker build -t kafkaclient .
+
+#. Start Zookeeper and Kafka  using the same instructions from the previous section (Use the most optimized Kafka image available)
+
+#. Start a  *kafkaclient* container, instructing docker to link both the ``zookeeper`` and the ``kafka`` containers, and to expose the container's port 5000 in the host's port 5000:
+
+    .. parsed-literal::
+        docker run --rm -d --link kafka  --link zookeeper -p 5000:5000 --name kafkaclient kafkaclient
+
+#. The application has two hard-coded topics ("deliveries" and "updates"), and only writes messages to those topics. To write a message, we will use the ``POST /kafka`` REST API endpoint:
+
+    .. parsed-literal::
+        curl -X POST -H 'Content-type: application/json' http://localhost:5000/kafka -d '{"topic": "deliveries", "message": "Chuck Norris just delivered you a roundhouse kick."}'
+
+#. Try writing different messages and writing to topics that are not ``deliveries`` or ``updates``.
+
+#. Open another terminal, log into the ``kafka`` container and start a console consumer for the "deliveries" topic (we used the ``kafka-console-consumer`` back in the **Building a Dockerfile: Apache Kafka** section). Write some messages to the ``deliveries`` topic using the ``POST /kafka`` REST API and notice the effect on the console consumer.
+
+#. Exit out of the ``kafka`` container. We are now going to consume the messages programatically with Python.  Start a container based on the ``kafkaclient`` image, but this time we are going to start it in interactive mode instead of having the container running in the background:
+
+    .. parsed-literal::
+        docker run --rm -it --link kafka --link zookeeper --name kafkaconsumer kafkaclient sh
+
+#. Once you are in the container, start an interactive python session and use the pykafka library to retrieve the messages
+
+    .. parsed-literal::
+
+        /opt/kafkaclient # python
+        Python 2.7.14 (default, Nov  4 2017, 00:10:20) 
+        [GCC 6.3.0] on linux2
+        Type "help", "copyright", "credits" or "license" for more information.
+        >>> from pykafka import KafkaClient
+        >>> client = KafkaClient(zookeeper_hosts="zookeeper")
+        >>> client.topics
+        {'test': None, 'foo': None, 'bla': None, 'updates': None, 'deliveries': None}
+        >>> topic = client.topics['deliveries']
+        >>> consumer = topic.get_simple_consumer()
+        >>> for message in consumer:
+        ...     print message.offset, message.value
+        ... 
+        0 Chuck Norris just delivered you a roundhouse kick.
+        1 blabla
+        2 foo
+
+#. Without closing the python interpreter, go back to the terminal that you used to call the ``POST /kafka`` REST API and write a few more messages. Notice the effect on the output in the python interpreter session that is consuming messages from kafka.
+
+
+A Websockets Chat application
+-----------------------------
+
+In this section, we are going to create a very simple chat application (all source code is based in the examples provided by the `Flask-SocketIO <https://github.com/miguelgrinberg/Flask-SocketIO>`_ python library.)
+
+#. SSH into **docker-0**. Create a new directory called ``chatserver`` and change into it.
+
+#. Create a file called ``app.py`` with the following content:
+
+    .. parsed-literal::
+        from flask import Flask, render_template, session, request
+        from flask_socketio import SocketIO, emit, join_room, leave_room, \\
+            close_room, rooms, disconnect
+
+        async_mode = None
+
+        app = Flask(__name__)
+        app.config['SECRET_KEY'] = 'secret!'
+        socketio = SocketIO(app, async_mode=async_mode)
+
+        @app.route('/')
+        def index():
+            return render_template('index.html', async_mode=socketio.async_mode)
+
+
+        @socketio.on('echo_event', namespace='/test')
+        def test_message(message):
+            session['receive_count'] = session.get('receive_count', 0) + 1
+            emit('my_response',
+                 {'data': message['data'], 'count': session['receive_count']})
+
+
+        @socketio.on('broadcast_event', namespace='/test')
+        def test_broadcast_message(message):
+            session['receive_count'] = session.get('receive_count', 0) + 1
+            emit('my_response',
+                 {'data': message['data'], 'count': session['receive_count']},
+                 broadcast=True)
+
+
+        @socketio.on('disconnect_request', namespace='/test')
+        def disconnect_request():
+            session['receive_count'] = session.get('receive_count', 0) + 1
+            emit('my_response',
+                 {'data': 'Disconnected!', 'count': session['receive_count']})
+            disconnect()
+
+
+        @socketio.on('connect', namespace='/test')
+        def test_connect():
+            emit('my_response', {'data': 'Connected', 'count': 0})
+
+
+        @socketio.on('disconnect', namespace='/test')
+        def test_disconnect():
+            print('Client disconnected', request.sid)
+
+
+        if __name__ == '__main__':
+            socketio.run(app, debug=True)
+
+#. Create a file called ``requirements.txt`` with the following content:
+
+    .. parsed-literal::
+        eventlet==0.21.0
+        Flask-SocketIO==2.9.2
+
+#. Create a directory within ``chatserver`` called ``templates`` and then create a file called ``index.html`` inside this directory, with the following content:
+
+    .. parsed-literal::
+        <!DOCTYPE HTML>
+        <html>
+        <head>
+            <title>Chatty</title>
+            <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
+            <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script>
+            <script type="text/javascript" charset="utf-8">
+                $(document).ready(function() {
+                    namespace = '/test';
+                    var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+
+                    socket.on('connect', function() {
+                        socket.emit('my_event', {data: 'I\\'m connected!'});
+                    });
+
+                    socket.on('my_response', function(msg) {
+                        $('#log').append('<br>' + $('<div/>').text('Received #' + msg.count + ': ' + msg.data).html());
+                    });
+
+                    // Form Handlers
+                    $('form#echo').submit(function(event) {
+                        socket.emit('echo_event', {data: $('#echo_data').val()});
+                        return false;
+                    });
+                    $('form#broadcast').submit(function(event) {
+                        socket.emit('broadcast_event', {data: $('#broadcast_data').val()});
+                        return false;
+                    });
+                    $('form#disconnect').submit(function(event) {
+                        socket.emit('disconnect_request');
+                        return false;
+                    });
+                });
+            </script>
+        </head>
+        <body>
+            <h1>Chatty</h1>
+            <h2>Send:</h2>
+            <form id="echo" method="POST" action='#'>
+                <input type="text" name="echo_data" id="echo_data" placeholder="Message">
+                <input type="submit" value="Echo">
+            </form>
+            <form id="broadcast" method="POST" action='#'>
+                <input type="text" name="broadcast_data" id="broadcast_data" placeholder="Message">
+                <input type="submit" value="Broadcast">
+            </form>
+            <form id="disconnect" method="POST" action="#">
+                <input type="submit" value="Disconnect">
+            </form>
+            <h2>Received Messages:</h2>
+            <div id="log"></div>
+        </body>
+        </html>
+
+
+#. Back in the ``chatserver`` directory, create a ``Dockerfile`` with the following contents:
+
+    .. parsed-literal::
+
+        FROM python:2.7-alpine3.6
+
+        COPY . /opt/chatserver/
+
+        WORKDIR /opt/chatserver
+
+        RUN apk add --no-cache g++ \\
+            && pip install -r requirements.txt
+
+        ENV FLASK_APP app.py
+
+        CMD ["flask", "run", "--host=0.0.0.0", "--port=5000"]
+
+#. Once all these files have been created, the directory tree of ``chatserver`` should look like this:
+
+	.. parsed-literal::
+
+		chatserver
+		   ├── app.py
+		   ├── Dockerfile
+		   ├── requirements.txt
+		   └── templates
+		       └── index.html
+
+
+#. Build the image and tag it as ``chatserver``:
+
+    .. parsed-literal::
+
+        docker build -t chatserver .
+
+#. Next we want to test the chat application. We are goint to start a container named *test_chatserver* (``--name test_chatserver``) with the *chatserver* image we just built, exposing port 5000 of the container as port 80 on the host (``-p 80:5000``). This container is going to run in *detached* mode (``-d``) and since are just testing we are going to instruct docker to remove the container once it is stopped (``--rm``)
+
+    .. parsed-literal::
+
+         > docker run -d --rm -p 80:5000  --name test_chatserver chatserver
+
+#. Open a browser and browse to the External IP Address asigned to **docker-0**. You should see the app running. Experiment with the different options.  Open a second browser (use the incognito option so no session data is shared) and experiment with the broadcast option.
+
+
+
+Enhancing the Websockets Application to use a Message Broker
+------------------------------------------------------------
+
+In this section you will work on your own.  The objective is to enhance the Chat application.  A problem that the application currently has is that it is hard to scale.  Think about how you would scale the application horizontally, and how would you be able to broadcast a message.  By using a message broker, we can write the messages sent to the application to a queue. By doing that , messages will be available to be picked by all the copies of the application that are running, do they can forward them to the clients that they are serving.
+
+Here's what you need to do:
+
+#. Enhance the application to write the broadcast messages to a topic called "broadcast".
+#. Implement a consumer that read the messages from the "broadcast" topic and broadcasts the message.
+
