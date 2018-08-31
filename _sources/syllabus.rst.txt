@@ -22,7 +22,7 @@ General Course Information
 :Prerequisites: 
     CS 315, or consent of the instructor.
 :Labs Page:
-    http://jcabmora.github.io/cs385fa2018
+    http://jcabmora.github.io/cs385fa18
 
 Course Description
 ==================
