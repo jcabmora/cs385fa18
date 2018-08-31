@@ -11,14 +11,14 @@ Instructor Contact Information
 :Email:
     cabrera@sonoma.edu
 :Office Hours:
-    To be scheduled as needed.
+    Fridays from 12:00 PM to 1:00 PM
 
 
 General Course Information
 ==========================
 
 :Schedule:
-    Fri 1\:00 PM to 3\:40 PM @ Darwin 30 / Stevenson 1034.
+    Fri 1\:00 PM to 3\:40 PM @ Stevenson 1034.
 :Prerequisites: 
     CS 315, or consent of the instructor.
 :Labs Page:

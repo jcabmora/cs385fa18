@@ -1,16 +1,14 @@
 ****************************************************
-Lab No. 01: Deploying an Application to Google Cloud
+Lab No. 1: Deploying an Application to Google Cloud
 ****************************************************
 
-The purpose of this Lab is to familiarize students with the tools available within the Google Cloud Platform.
-
+The purpose of this Lab is to familiarize students with the tools available within the Google Cloud Platform to manage Virtual Machines.
 This lab assumes that you have already completed the account registration process and that you have access to the Google Cloud Platform Console.
+You will create a virtual machine and deploy a simple RESTful service.
 
 
 Deploying a Virtual Machine
 ===========================
-
-In this section you will create a virtual machine and deploy a simple service.
 
 #. Login to the Google Cloud Platform Console
 #. On the Left Navigation Bar, from the **COMPUTE** section, select **Compute Engine > VM Instances**. This operation might take a minute or two the first time.  You will be presented with the following dialog
@@ -18,15 +16,14 @@ In this section you will create a virtual machine and deploy a simple service.
     .. image:: emptyinstances_dialog.png
 
 #. Click **Create**.  This might take a minute or two the first time. You will be presented with the **Create an instance** dialog.  
-#. Provide a name for your instance. Since this is the first lab, ``lab-1`` is probably a reasonable name.
+#. Provide a name for your instance. Since this is the first lab, ``lab1`` is probably a reasonable name.
 #. You need to select a Region and a Zone.  Read the documentation about zones (https://cloud.google.com/compute/docs/regions-zones/).  Select zone ``us-west1-a``.
-#. Notice the diffent options that are available for **Machine Type**.  Click on the **Customize** link and inspect the different options that are available.  Also notice that the selections you make determine the cost per hour of the instance.
+#. Notice the different options that are available for **Machine Type**.  Click on the **Customize** link and inspect the different options that are available.  Also notice that the selections you make determine the cost per hour of the instance.
 #. For this lab we are going to create an instance of the lowest possible cost. Go back to the **Basic View**, and select **micro (1 shared vCPU/0.6 GB memory)**
-#. Under **Boot Disk**, chick on "Change", and notice that you are provided with several preconfigured images.  Select ubuntu 16.04 LTS, using a standard persistent disk of 10 GB.  
-#. Under **Firewall**, enable both HTTP and HTTPS traffic.
+#. Under **Boot Disk**, chick on "Change", and notice that you are presented with several preconfigured images.  Select **Ubuntu 16.04 LTS**, using a **standard persistent disk of 10 GB**.  
 #. Under **Management** provide a meaningful description of your own choice.
-#. Let the options under **Disks**, **Networking** amd **SSH Keys** default.
-#. Notice at the bottom of the page there is a link **Equivalent REST or command line**.  Copy those values and save them.  We will provision another Virtual Machine in the second part of the lab using the command line instead of the Web user interface.
+#. Under **Networking** assign a tag of ``lab01``. We will need this to enable traffic later.
+#. Let the options under **Security**, **Disks** and **Sole Tenancy** default.
 #. Click on **Create**.  Wait for a couple of minutes.  Once this has completed, you should see the newly created instance on the "VM Instances" Console:
 
 
@@ -49,7 +46,7 @@ This will open an SSH session that runs on a browser.
 Command Line SSH Access
 -----------------------
 
-In order to be able to connect to the Virtual machine you just created using a local terminal (i.e. in the computer that you are currently using), you need first to set up a pair of SSH keys.
+In order to be able to connect to the Virtual machine you just created using a **local** terminal (i.e. in the computer that you are currently using), you need first to set up a pair of SSH keys.
 Note that anyone that gets access to your SSH private keys will potentially able to get access to your machine(s), so you need to be very careful to not leave your private keys on systems that are accessible to others.
 It is highly encouraged to use a passphrase when creating your keys, and if you are doing this lab on a public/shared machine (e.g. one of SSU labs) make sure that the keys are stored in a directory that is only accessible to you.
 
@@ -58,23 +55,47 @@ It is highly encouraged to use a passphrase when creating your keys, and if you 
     .. parsed-literal::
         > ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_gcp -C <YOUR-USER>
 
-#. Upload the public key: While on the **Compute Engine** dashboard, select the **Metadata** option from the left navigation menu (you can go directly by entering this URL https://console.cloud.google.com/compute/metadata/sshKeys). Click on **Edit**, **+ Add Item** and paste the contents of your public key.  Using the example keys that were generated earlier, this will be the content of the `/home/you/.ssh/id_gcp.pub` file.
+#. Upload the public key: While on the **Compute Engine** dashboard, select the **Metadata** option from the left navigation menu and click on the **SSH Keys** link (you can go directly by entering this URL https://console.cloud.google.com/compute/metadata/sshKeys). 
+
+    .. image:: sshkeys.png
+
+#. Click on **Edit**, **+ Add Item** and paste the contents of your public key.  Using the example keys that were generated earlier, this will be the content of the ``/home/<YOURACCOUNT>/.ssh/id_gcp.pub`` file if you are in a Linux system..
 
 #. Save.  Test your using ssh on your terminal:
 
     .. parsed-literal::
         > ssh -i~/.ssh/id_gcp <YOUR-USER>@<YOUR-VM-IPADDRESS>
 
+
 Deploy a web application
 ------------------------
 
 Now that your virtual machine is running, you will setup and deploy a simple application that lets you register an account.
+We are going to add more pieces to the app on future labs.
+The source code for the app is hosted at http://github.com/jcabmora/minibank.
+Notice that the app will be updated constantly during the semester, so if you clone the repository, you will need to update accordingly.
+
+
+Configure Firewall Rules
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The REST service that we will deploy later will listen in port 8080. In order to be able to get access to the service from the outside world, we need to configure Firewall Rules.
+
+#. Login to the Google Cloud Platform Console.
+#. On the Left Navigation Bar, from the **NETWORKING** section, select **VPC network > Firewall Rules**.
+#. Click on the **Create Firewall Rule** link:
+
+    .. image:: createfirewall.png
+
+#. On the **Create a firewall rule** dialog, assign a name of ``temp-8080``, provide a description. On **Targets**, select ``Specified target tags`` and on **Target tags** enter ``lab01``.  On **Source IP ranges** enter ``0.0.0.0/0`` (which means any IP Address). Specify ``tcp:8080`` in protocols and ports.. Once you are done, your firewall rule should look like this:
+
+    .. image:: firewallrule.png
 
 
 Install MySQL
 ~~~~~~~~~~~~~
 
-The application that we are going to deploy requires a SQL database. In this section we are going to install mysql in the same Virtual Machine that was created in the previous step.
+The application that we are going to deploy requires a SQL database. In this part of the lab we are going to install mysql in the same Virtual Machine that was created in the previous step.
 
 #. Log into the Virtual Machine if you haven't already.
 
@@ -94,7 +115,7 @@ The application that we are going to deploy requires a SQL database. In this sec
 
     .. parsed-literal::
         mysql> CREATE DATABASE minibank;
-		Query OK, 0 rows affected (0.02 sec)
+		Query OK, 1 rows affected (0.02 sec)
 
 #. Activate the ``minibank`` database and create the ``account`` table:
 
@@ -104,9 +125,8 @@ The application that we are going to deploy requires a SQL database. In this sec
         mysql> CREATE TABLE account (
             ->     id INTEGER NOT NULL AUTO_INCREMENT,
             ->     username CHAR(30) NOT NULL,
-            ->     password CHAR(32) NOT NULL,
-            ->     salt CHAR(32) NOT NULL,
-            ->     timestamp INT UNSIGNED NOT NULL,
+            ->     password CHAR(60) NOT NULL,
+            ->     timestamp BIGINT UNSIGNED NOT NULL,
             ->     PRIMARY KEY(id),
             ->     UNIQUE KEY(username)
             -> ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -114,22 +134,20 @@ The application that we are going to deploy requires a SQL database. In this sec
 
 #. Confirm that the table was created correctly:
 
-   .. parsed-literal::
-       mysql> describe account;
-       +-----------+------------------+------+-----+---------+----------------+
-       | Field     | Type             | Null | Key | Default | Extra          |
-       +-----------+------------------+------+-----+---------+----------------+
-       | id        | int(11)          | NO   | PRI | NULL    | auto_increment |
-       | username  | char(30)         | NO   | UNI | NULL    |                |
-       | password  | char(32)         | NO   |     | NULL    |                |
-       | salt      | char(32)         | NO   |     | NULL    |                |
-       | timestamp | int(10) unsigned | NO   |     | NULL    |                |
-       +-----------+------------------+------+-----+---------+----------------+
-       5 rows in set (0.00 sec)
+    .. parsed-literal::
+        mysql> describe account;
+        +-----------+---------------------+------+-----+---------+----------------+
+        | Field     | Type                | Null | Key | Default | Extra          |
+        +-----------+---------------------+------+-----+---------+----------------+
+        | id        | int(11)             | NO   | PRI | NULL    | auto_increment |
+        | username  | char(30)            | NO   | UNI | NULL    |                |
+        | password  | char(60)            | NO   |     | NULL    |                |
+        | timestamp | bigint(20) unsigned | NO   |     | NULL    |                |
+        +-----------+---------------------+------+-----+---------+----------------+
+        4 rows in set (0.687 sec)
 
 
-
-#. Create the ``minibank`` user. You can use a different password for this account by specifying a different argument to the ``IDENTIFIED BY`` clause:
+#. Create the ``minibank`` user:
 
     .. parsed-literal::
         mysql> CREATE USER 'minibank'@'%' IDENTIFIED BY 'minibank';
@@ -157,56 +175,166 @@ The application that we are going to deploy requires a SQL database. In this sec
         +--------------------------------------------------------+
         | Grants for minibank@%                                  |
         +--------------------------------------------------------+
-        | GRANT USAGE ON \*.\* TO 'minibank'@'%'                   |
+        | GRANT USAGE ON \*.\* TO 'minibank'@'%'                 |
         | GRANT ALL PRIVILEGES ON `minibank`.* TO 'minibank'@'%' |
         +--------------------------------------------------------+
         2 rows in set (0.00 sec)
 
-
-Install the application
-
-
-Run a Linux Container
----------------------
+#. Exit the mysql interactive session (type ``exit``)
 
 
-Install Docker on the newly created machine:
+Install a Simple REST API
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#. Execute the following commands:
+The account registration service consists of an application written in go.  You will not be provided with an executable, and you will need to compile the application your self.
 
-	.. parsed-literal::
-		sudo apt-get install apt-transport-https ca-certificates curl software-properties-common
-		curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-		sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-		sudo apt-get update
-		sudo apt-get install docker-ce
+#. Install go tools (official and most up-to-date instructions can be found at https://golang.org/doc/install):
 
-#. Test your installation
-	
-	.. parsed-literal::
-		sudo docker run hello-world
+    .. parsed-literal::
+        > wget https://dl.google.com/go/go1.10.3.linux-amd64.tar.gz
+        > sudo tar -C /usr/local -xvzf go1.10.3.linux-amd64.tar.gz
+        > rm go1.10.3.linux-amd64.tar.gz
 
-#. Run apache webserver container in the background
+#. Create the ``go`` directory in your current user's directory
 
-	.. parsed-literal::
-		sudo docker run -d -p 80:80 httpd
+    .. parsed-literal::
+        > mkdir ~/go
 
-#. Verify the container is running
+#. Add the ``GOPATH`` environment variable to the ``~/.profile`` file. Also add the ``$GOPATH/bin`` and the ``/usr/local/go/bin`` paths to the ``PATH`` environment variable. The modified lines within the ``~/.profile`` file should look like this:
 
-	.. parsed-literal::
-		sudo docker ps
+    .. parsed-literal::
+        GOPATH="$HOME/go"
+        export GOPATH
+        # set PATH so it includes user's private bin directories
+        PATH="$HOME/bin:$HOME/.local/bin:$GOPATH/bin:/usr/local/go/bin:$PATH"
+
+#. Reload your profile settings for the previous changes to take effectivity:
+
+    .. parsed-literal::
+        > source ~/.profile
+   
+#.Execute the following command to confirm the environment variables were correctly setup:
+
+    .. parsed-literal::
+        > env | grep GOPATH
+        GOPATH=/home/<YOUR-USER>/go
+
+#. Test the go-tools installation
+   
+    .. parsed-literal::
+        > go version
+        go version go1.10.3 linux/amd64
+
+#. Download the source code to your ``GOPATH``
+
+    .. parsed-literal::
+        > wget https://github.com/jcabmora/minibank/archive/week1.tar.gz -O - | tar zxf - --strip-components=2 -C go
+
+#. Confirm by listing the files within your ``GOPATH``:
+
+    .. parsed-literal::
+        > ls -R $GOPATH
+        /home/<YOUR-USER>/go:
+        db.sql  src
+
+        /home/<YOUR-USER>/go/src:
+        minibank
+
+        /home/<YOUR-USER>/go/src/minibank:
+        handlers  main.go  models
+
+        /home/<YOUR-USER>/go/src/minibank/handlers:
+        account.go
+
+        /home/<YOUR-USER>/go/src/minibank/models:
+        account.go  db.go
+
+#. Get the dependencies:
+
+    .. parsed-literal::
+        > cd $GOPATH && go get -t minibank
+
+#. Build and install the app:
+
+   .. parsed-literal::
+        > cd $GOPATH && go install minibank
+
+#. Run the service:
+
+    .. parsed-literal::
+        > minibank
 
 
-#. Open a web browser and browse to the External IP Address of your Virtual Machine
+Test the Service
+~~~~~~~~~~~~~~~~
 
-Stop the Virtual Machine
-========================
+
+#. On a new terminal which is not logged into the VM, execute the following command (you might need to install the ``curl`` utility). Use the External IP Address of your VM.
+
+    .. parsed-literal::
+        > curl -v  http://<YOUR_VM_IP_ADDRESS>:8080/api/account/register -d '{"username": "john", "password": "john1234567"}'
+        *   Trying <YOUR_VM_IP_ADDRESS>...
+        * TCP_NODELAY set
+        * Connected to <YOUR_VM_IP_ADDRESS> (<YOUR_VM_IP_ADDRESS>) port 8080 (#0)
+        > POST /api/account/register HTTP/1.1
+        > Host: <YOUR_VM_IP_ADDRESS>:8080
+        > User-Agent: curl/7.58.0
+        > Accept: \*/\*
+        > Content-Length: 47
+        > Content-Type: application/x-www-form-urlencoded
+        > 
+        * upload completely sent off: 47 out of 47 bytes
+        < HTTP/1.1 200 OK
+        < Date: Fri, 31 Aug 2018 09:22:00 GMT
+        < Content-Length: 33
+        < Content-Type: application/octet-stream
+        < 
+        * Connection #0 to host <YOUR_VM_IP_ADDRESS> left intact
+        Successfully registered account
+
+#. Open another SSH session to the Lab VM, and log into a mysql session. Verify that the user record was created:
+
+    .. parsed-literal::
+        > mysql -uminibank -pminibank minibank -e "SELECT * FROM account;"
+        mysql: [Warning] Using a password on the command line interface can be insecure.
+        +----+----------+--------------------------------------------------------------+---------------+
+        | id | username | password                                                     | timestamp     |
+        +----+----------+--------------------------------------------------------------+---------------+
+        |  1 | john     | $2a$10$cH4qX7TJIkanYuNXcTwRuevZyU3d7aUKkDfftTzy6QZSxnWgSRFYi | 1535707320920 |
+        +----+----------+--------------------------------------------------------------+---------------+
+
+
+Stop the Virtual Machine and create an image
+============================================
 
 Once you have finished the previous steps, go back to the **VM instance dashboard** and stop the instance.
+This process usually takes several seconds to complete.
+We now want to create an image of the VM that we just created so we can make clones of the service.
 
+#. On the left navigation bar of the Google Cloud Platform Console, click on **Images** and then click on the **Create Image** link.
+#. On the **Create an image** dialog, provide a name (e.g. ``lab1-img``) and a description of your choice.  On **Source disk**, select the disk that corresponds to the VM we created before.
+#. Click on **Create** and wait a couple of minutes, or until the list of images reflects the image we just created.
+
+
+Create a Clone of the VM
+========================
+
+#. Start again the process of creating a new VM as you did before. However,this time, during the boot disk selection, select the image that was previously created:
+
+    .. image:: selectimg.png 
+
+#. Start an SSH session to the new VM. Once logged in, simply start the ``minibank`` command. The service shoudl be running. Test the service from your local workstation.
 
 Report
 ======
 
-#. Contrast the process of provisioning a physical server versus the process of creating a VM instance.  Evaluate the pros and cons of each.
+#. Contrast the process of provisioning and setting up an application in a physical server versus the process of creating a VM instance.  Evaluate the pros and cons of each. What is similar and what is different.
+#. Suppose you share your service with some friends, and suddenly you have a high demand for the minibank service.  Given how we build the service, how can you increase the capacity? Provide some ideas that can help you scale the service to more users.
 
+Clean up
+========
+In order to save credits, remove all the resources we created during this lab.
+
+#. Stop and remove all the VM
+#. Remove the VM image
+#. Remove the firewall rule that was added during the lab.

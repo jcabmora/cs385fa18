@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Lab No. 1: Deploying an Application to Google Cloud &#8212; CS385 Cloud Systems Architecture  documentation</title>
+    <link rel="stylesheet" href="../../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="prev" title="CS385 Cloud Systems Architecture" href="../../syllabus.html" />
+<link href="https://fonts.googleapis.com/css?family=Lusitana|Inconsolata|Roboto" rel="stylesheet">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../index.html">
+          CS385 Cloud Systems Architecture</a>
+        <span class="navbar-text navbar-version pull-left"><b></b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../syllabus.html">CS385 Cloud Systems Architecture</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Lab No. 1: Deploying an Application to Google Cloud</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">Lab No. 1: Deploying an Application to Google Cloud</a><ul>
+<li><a class="reference internal" href="#deploying-a-virtual-machine">Deploying a Virtual Machine</a></li>
+<li><a class="reference internal" href="#access-to-the-virtual-machine">Access to the Virtual Machine</a><ul>
+<li><a class="reference internal" href="#browser-access">Browser access</a></li>
+<li><a class="reference internal" href="#command-line-ssh-access">Command Line SSH Access</a></li>
+<li><a class="reference internal" href="#deploy-a-web-application">Deploy a web application</a><ul>
+<li><a class="reference internal" href="#configure-firewall-rules">Configure Firewall Rules</a></li>
+<li><a class="reference internal" href="#install-mysql">Install MySQL</a></li>
+<li><a class="reference internal" href="#install-a-simple-rest-api">Install a Simple REST API</a></li>
+<li><a class="reference internal" href="#test-the-service">Test the Service</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#stop-the-virtual-machine-and-create-an-image">Stop the Virtual Machine and create an image</a></li>
+<li><a class="reference internal" href="#create-a-clone-of-the-vm">Create a Clone of the VM</a></li>
+<li><a class="reference internal" href="#report">Report</a></li>
+<li><a class="reference internal" href="#clean-up">Clean up</a></li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="../../syllabus.html" title="Previous Chapter: CS385 Cloud Systems Architecture"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; CS385 Cloud S...</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../../_sources/labs/lab01/lab01.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="section" id="lab-no-1-deploying-an-application-to-google-cloud">
+<h1>Lab No. 1: Deploying an Application to Google Cloud<a class="headerlink" href="#lab-no-1-deploying-an-application-to-google-cloud" title="Permalink to this headline">¶</a></h1>
+<p>The purpose of this Lab is to familiarize students with the tools available within the Google Cloud Platform to manage Virtual Machines.
+This lab assumes that you have already completed the account registration process and that you have access to the Google Cloud Platform Console.
+You will create a virtual machine and deploy a simple RESTful service.</p>
+<div class="section" id="deploying-a-virtual-machine">
+<h2>Deploying a Virtual Machine<a class="headerlink" href="#deploying-a-virtual-machine" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic">
+<li><p class="first">Login to the Google Cloud Platform Console</p>
+</li>
+<li><p class="first">On the Left Navigation Bar, from the <strong>COMPUTE</strong> section, select <strong>Compute Engine &gt; VM Instances</strong>. This operation might take a minute or two the first time.  You will be presented with the following dialog</p>
+<blockquote>
+<div><img alt="../../_images/emptyinstances_dialog.png" src="../../_images/emptyinstances_dialog.png" />
+</div></blockquote>
+</li>
+<li><p class="first">Click <strong>Create</strong>.  This might take a minute or two the first time. You will be presented with the <strong>Create an instance</strong> dialog.</p>
+</li>
+<li><p class="first">Provide a name for your instance. Since this is the first lab, <code class="docutils literal"><span class="pre">lab1</span></code> is probably a reasonable name.</p>
+</li>
+<li><p class="first">You need to select a Region and a Zone.  Read the documentation about zones (<a class="reference external" href="https://cloud.google.com/compute/docs/regions-zones/">https://cloud.google.com/compute/docs/regions-zones/</a>).  Select zone <code class="docutils literal"><span class="pre">us-west1-a</span></code>.</p>
+</li>
+<li><p class="first">Notice the different options that are available for <strong>Machine Type</strong>.  Click on the <strong>Customize</strong> link and inspect the different options that are available.  Also notice that the selections you make determine the cost per hour of the instance.</p>
+</li>
+<li><p class="first">For this lab we are going to create an instance of the lowest possible cost. Go back to the <strong>Basic View</strong>, and select <strong>micro (1 shared vCPU/0.6 GB memory)</strong></p>
+</li>
+<li><p class="first">Under <strong>Boot Disk</strong>, chick on “Change”, and notice that you are presented with several preconfigured images.  Select <strong>Ubuntu 16.04 LTS</strong>, using a <strong>standard persistent disk of 10 GB</strong>.</p>
+</li>
+<li><p class="first">Under <strong>Management</strong> provide a meaningful description of your own choice.</p>
+</li>
+<li><p class="first">Under <strong>Networking</strong> assign a tag of <code class="docutils literal"><span class="pre">lab01</span></code>. We will need this to enable traffic later.</p>
+</li>
+<li><p class="first">Let the options under <strong>Security</strong>, <strong>Disks</strong> and <strong>Sole Tenancy</strong> default.</p>
+</li>
+<li><p class="first">Click on <strong>Create</strong>.  Wait for a couple of minutes.  Once this has completed, you should see the newly created instance on the “VM Instances” Console:</p>
+</li>
+</ol>
+<img alt="../../_images/newvm.png" src="../../_images/newvm.png" />
+</div>
+<div class="section" id="access-to-the-virtual-machine">
+<h2>Access to the Virtual Machine<a class="headerlink" href="#access-to-the-virtual-machine" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="browser-access">
+<h3>Browser access<a class="headerlink" href="#browser-access" title="Permalink to this headline">¶</a></h3>
+<p>You can get shell access to the newly created Virtual Machine through the Google Cloud Platform web interface.  Select the “Open in browser window” option from the “Connect” drop down menu:</p>
+<img alt="../../_images/ssh-browser.png" src="../../_images/ssh-browser.png" />
+<p>This will open an SSH session that runs on a browser.</p>
+</div>
+<div class="section" id="command-line-ssh-access">
+<h3>Command Line SSH Access<a class="headerlink" href="#command-line-ssh-access" title="Permalink to this headline">¶</a></h3>
+<p>In order to be able to connect to the Virtual machine you just created using a <strong>local</strong> terminal (i.e. in the computer that you are currently using), you need first to set up a pair of SSH keys.
+Note that anyone that gets access to your SSH private keys will potentially able to get access to your machine(s), so you need to be very careful to not leave your private keys on systems that are accessible to others.
+It is highly encouraged to use a passphrase when creating your keys, and if you are doing this lab on a public/shared machine (e.g. one of SSU labs) make sure that the keys are stored in a directory that is only accessible to you.</p>
+<ol class="arabic">
+<li><p class="first">Open a terminal in your local computer and use the <code class="docutils literal"><span class="pre">ssh-keygen</span></code> command to generate a new key pair.  Make sure that you provide a <cite>-C</cite> parameter which is used by Google Cloud Platform to identify the user (replace <em>&lt;YOUR-USER&gt;</em> with your own)</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">ssh</span><span class="o">-</span><span class="n">keygen</span> <span class="o">-</span><span class="n">t</span> <span class="n">rsa</span> <span class="o">-</span><span class="n">b</span> <span class="mi">2048</span> <span class="o">-</span><span class="n">f</span> <span class="o">~/.</span><span class="n">ssh</span><span class="o">/</span><span class="n">id_gcp</span> <span class="o">-</span><span class="n">C</span> <span class="o">&lt;</span><span class="n">YOUR</span><span class="o">-</span><span class="n">USER</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Upload the public key: While on the <strong>Compute Engine</strong> dashboard, select the <strong>Metadata</strong> option from the left navigation menu and click on the <strong>SSH Keys</strong> link (you can go directly by entering this URL <a class="reference external" href="https://console.cloud.google.com/compute/metadata/sshKeys">https://console.cloud.google.com/compute/metadata/sshKeys</a>).</p>
+<blockquote>
+<div><img alt="../../_images/sshkeys.png" src="../../_images/sshkeys.png" />
+</div></blockquote>
+</li>
+<li><p class="first">Click on <strong>Edit</strong>, <strong>+ Add Item</strong> and paste the contents of your public key.  Using the example keys that were generated earlier, this will be the content of the <code class="docutils literal"><span class="pre">/home/&lt;YOURACCOUNT&gt;/.ssh/id_gcp.pub</span></code> file if you are in a Linux system..</p>
+</li>
+<li><p class="first">Save.  Test your using ssh on your terminal:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">ssh</span> <span class="o">-</span><span class="n">i</span><span class="o">~/.</span><span class="n">ssh</span><span class="o">/</span><span class="n">id_gcp</span> <span class="o">&lt;</span><span class="n">YOUR</span><span class="o">-</span><span class="n">USER</span><span class="o">&gt;@&lt;</span><span class="n">YOUR</span><span class="o">-</span><span class="n">VM</span><span class="o">-</span><span class="n">IPADDRESS</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ol>
+</div>
+<div class="section" id="deploy-a-web-application">
+<h3>Deploy a web application<a class="headerlink" href="#deploy-a-web-application" title="Permalink to this headline">¶</a></h3>
+<p>Now that your virtual machine is running, you will setup and deploy a simple application that lets you register an account.
+We are going to add more pieces to the app on future labs.
+The source code for the app is hosted at <a class="reference external" href="http://github.com/jcabmora/minibank">http://github.com/jcabmora/minibank</a>.
+Notice that the app will be updated constantly during the semester, so if you clone the repository, you will need to update accordingly.</p>
+<div class="section" id="configure-firewall-rules">
+<h4>Configure Firewall Rules<a class="headerlink" href="#configure-firewall-rules" title="Permalink to this headline">¶</a></h4>
+<p>The REST service that we will deploy later will listen in port 8080. In order to be able to get access to the service from the outside world, we need to configure Firewall Rules.</p>
+<ol class="arabic">
+<li><p class="first">Login to the Google Cloud Platform Console.</p>
+</li>
+<li><p class="first">On the Left Navigation Bar, from the <strong>NETWORKING</strong> section, select <strong>VPC network &gt; Firewall Rules</strong>.</p>
+</li>
+<li><p class="first">Click on the <strong>Create Firewall Rule</strong> link:</p>
+<blockquote>
+<div><img alt="../../_images/createfirewall.png" src="../../_images/createfirewall.png" />
+</div></blockquote>
+</li>
+<li><p class="first">On the <strong>Create a firewall rule</strong> dialog, assign a name of <code class="docutils literal"><span class="pre">temp-8080</span></code>, provide a description. On <strong>Targets</strong>, select <code class="docutils literal"><span class="pre">Specified</span> <span class="pre">target</span> <span class="pre">tags</span></code> and on <strong>Target tags</strong> enter <code class="docutils literal"><span class="pre">lab01</span></code>.  On <strong>Source IP ranges</strong> enter <code class="docutils literal"><span class="pre">0.0.0.0/0</span></code> (which means any IP Address). Specify <code class="docutils literal"><span class="pre">tcp:8080</span></code> in protocols and ports.. Once you are done, your firewall rule should look like this:</p>
+<blockquote>
+<div><img alt="../../_images/firewallrule.png" src="../../_images/firewallrule.png" />
+</div></blockquote>
+</li>
+</ol>
+</div>
+<div class="section" id="install-mysql">
+<h4>Install MySQL<a class="headerlink" href="#install-mysql" title="Permalink to this headline">¶</a></h4>
+<p>The application that we are going to deploy requires a SQL database. In this part of the lab we are going to install mysql in the same Virtual Machine that was created in the previous step.</p>
+<ol class="arabic">
+<li><p class="first">Log into the Virtual Machine if you haven’t already.</p>
+</li>
+<li><p class="first">Install the mysql-server package. During the installation you will be prompted for the root password. Input a password of your choice, just make sure you’ll remember it since you’ll need it later.</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">update</span>
+<span class="o">&gt;</span> <span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="o">-</span><span class="n">y</span> <span class="n">mysql</span><span class="o">-</span><span class="n">server</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">We now need to create the database tables that our application will use. First login into a mysql session:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">mysql</span> <span class="o">-</span><span class="n">uroot</span> <span class="o">-</span><span class="n">p</span><span class="o">&lt;</span><span class="n">YOUR</span><span class="o">-</span><span class="n">PASSWORD</span><span class="o">&gt;</span>
+<span class="n">mysql</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Once on the mysql session (you can verify by the <code class="docutils literal"><span class="pre">mysql&gt;</span></code> prompt) create a database called <code class="docutils literal"><span class="pre">minibank</span></code>:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">mysql</span><span class="o">&gt;</span> <span class="n">CREATE</span> <span class="n">DATABASE</span> <span class="n">minibank</span><span class="p">;</span>
+        <span class="n">Query</span> <span class="n">OK</span><span class="p">,</span> <span class="mi">1</span> <span class="n">rows</span> <span class="n">affected</span> <span class="p">(</span><span class="mf">0.02</span> <span class="n">sec</span><span class="p">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Activate the <code class="docutils literal"><span class="pre">minibank</span></code> database and create the <code class="docutils literal"><span class="pre">account</span></code> table:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">mysql</span><span class="o">&gt;</span> <span class="n">use</span> <span class="n">minibank</span><span class="p">;</span>
+<span class="n">Database</span> <span class="n">changed</span>
+<span class="n">mysql</span><span class="o">&gt;</span> <span class="n">CREATE</span> <span class="n">TABLE</span> <span class="n">account</span> <span class="p">(</span>
+    <span class="o">-&gt;</span>     <span class="nb">id</span> <span class="n">INTEGER</span> <span class="n">NOT</span> <span class="n">NULL</span> <span class="n">AUTO_INCREMENT</span><span class="p">,</span>
+    <span class="o">-&gt;</span>     <span class="n">username</span> <span class="n">CHAR</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span> <span class="n">NOT</span> <span class="n">NULL</span><span class="p">,</span>
+    <span class="o">-&gt;</span>     <span class="n">password</span> <span class="n">CHAR</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span> <span class="n">NOT</span> <span class="n">NULL</span><span class="p">,</span>
+    <span class="o">-&gt;</span>     <span class="n">timestamp</span> <span class="n">BIGINT</span> <span class="n">UNSIGNED</span> <span class="n">NOT</span> <span class="n">NULL</span><span class="p">,</span>
+    <span class="o">-&gt;</span>     <span class="n">PRIMARY</span> <span class="n">KEY</span><span class="p">(</span><span class="nb">id</span><span class="p">),</span>
+    <span class="o">-&gt;</span>     <span class="n">UNIQUE</span> <span class="n">KEY</span><span class="p">(</span><span class="n">username</span><span class="p">)</span>
+    <span class="o">-&gt;</span> <span class="p">)</span> <span class="n">ENGINE</span><span class="o">=</span><span class="n">InnoDB</span> <span class="n">DEFAULT</span> <span class="n">CHARSET</span><span class="o">=</span><span class="n">utf8mb4</span><span class="p">;</span>
+<span class="n">Query</span> <span class="n">OK</span><span class="p">,</span> <span class="mi">0</span> <span class="n">rows</span> <span class="n">affected</span> <span class="p">(</span><span class="mf">0.03</span> <span class="n">sec</span><span class="p">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Confirm that the table was created correctly:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">mysql</span><span class="o">&gt;</span> <span class="n">describe</span> <span class="n">account</span><span class="p">;</span>
+<span class="o">+-----------+---------------------+------+-----+---------+----------------+</span>
+<span class="o">|</span> <span class="n">Field</span>     <span class="o">|</span> <span class="n">Type</span>                <span class="o">|</span> <span class="n">Null</span> <span class="o">|</span> <span class="n">Key</span> <span class="o">|</span> <span class="n">Default</span> <span class="o">|</span> <span class="n">Extra</span>          <span class="o">|</span>
+<span class="o">+-----------+---------------------+------+-----+---------+----------------+</span>
+<span class="o">|</span> <span class="nb">id</span>        <span class="o">|</span> <span class="nb">int</span><span class="p">(</span><span class="mi">11</span><span class="p">)</span>             <span class="o">|</span> <span class="n">NO</span>   <span class="o">|</span> <span class="n">PRI</span> <span class="o">|</span> <span class="n">NULL</span>    <span class="o">|</span> <span class="n">auto_increment</span> <span class="o">|</span>
+<span class="o">|</span> <span class="n">username</span>  <span class="o">|</span> <span class="n">char</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span>            <span class="o">|</span> <span class="n">NO</span>   <span class="o">|</span> <span class="n">UNI</span> <span class="o">|</span> <span class="n">NULL</span>    <span class="o">|</span>                <span class="o">|</span>
+<span class="o">|</span> <span class="n">password</span>  <span class="o">|</span> <span class="n">char</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>            <span class="o">|</span> <span class="n">NO</span>   <span class="o">|</span>     <span class="o">|</span> <span class="n">NULL</span>    <span class="o">|</span>                <span class="o">|</span>
+<span class="o">|</span> <span class="n">timestamp</span> <span class="o">|</span> <span class="n">bigint</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span> <span class="n">unsigned</span> <span class="o">|</span> <span class="n">NO</span>   <span class="o">|</span>     <span class="o">|</span> <span class="n">NULL</span>    <span class="o">|</span>                <span class="o">|</span>
+<span class="o">+-----------+---------------------+------+-----+---------+----------------+</span>
+<span class="mi">4</span> <span class="n">rows</span> <span class="ow">in</span> <span class="nb">set</span> <span class="p">(</span><span class="mf">0.687</span> <span class="n">sec</span><span class="p">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Create the <code class="docutils literal"><span class="pre">minibank</span></code> user:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">mysql</span><span class="o">&gt;</span> <span class="n">CREATE</span> <span class="n">USER</span> <span class="s1">&#39;minibank&#39;</span><span class="o">@</span><span class="s1">&#39;%&#39;</span> <span class="n">IDENTIFIED</span> <span class="n">BY</span> <span class="s1">&#39;minibank&#39;</span><span class="p">;</span>
+<span class="n">Query</span> <span class="n">OK</span><span class="p">,</span> <span class="mi">0</span> <span class="n">rows</span> <span class="n">affected</span> <span class="p">(</span><span class="mf">0.00</span> <span class="n">sec</span><span class="p">)</span>
+
+<span class="n">mysql</span><span class="o">&gt;</span> <span class="n">GRANT</span> <span class="n">ALL</span> <span class="n">PRIVILEGES</span> <span class="n">ON</span> <span class="n">minibank</span><span class="o">.*</span> <span class="n">TO</span> <span class="s1">&#39;minibank&#39;</span><span class="o">@</span><span class="s1">&#39;%&#39;</span><span class="p">;</span>
+<span class="n">Query</span> <span class="n">OK</span><span class="p">,</span> <span class="mi">0</span> <span class="n">rows</span> <span class="n">affected</span> <span class="p">(</span><span class="mf">0.01</span> <span class="n">sec</span><span class="p">)</span>
+
+<span class="n">mysql</span><span class="o">&gt;</span> <span class="n">FLUSH</span> <span class="n">PRIVILEGES</span><span class="p">;</span>
+<span class="n">Query</span> <span class="n">OK</span><span class="p">,</span> <span class="mi">0</span> <span class="n">rows</span> <span class="n">affected</span> <span class="p">(</span><span class="mf">0.02</span> <span class="n">sec</span><span class="p">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">You can confirm that the user was created correctly by issuing the following statement:</p>
+<blockquote>
+<div><pre class="literal-block">
+mysql&gt; SELECT user FROM mysql.user WHERE user = 'minibank';
++----------+
+| user     |
++----------+
+| minibank |
++----------+
+1 row in set (0.00 sec)
+
+mysql&gt; show grants for 'minibank';
++--------------------------------------------------------+
+| Grants for minibank&#64;%                                  |
++--------------------------------------------------------+
+| GRANT USAGE ON *.* TO 'minibank'&#64;'%'                 |
+| GRANT ALL PRIVILEGES ON <cite>minibank</cite>.* TO 'minibank'&#64;'%' |
++--------------------------------------------------------+
+2 rows in set (0.00 sec)
+</pre>
+</div></blockquote>
+</li>
+<li><p class="first">Exit the mysql interactive session (type <code class="docutils literal"><span class="pre">exit</span></code>)</p>
+</li>
+</ol>
+</div>
+<div class="section" id="install-a-simple-rest-api">
+<h4>Install a Simple REST API<a class="headerlink" href="#install-a-simple-rest-api" title="Permalink to this headline">¶</a></h4>
+<p>The account registration service consists of an application written in go.  You will not be provided with an executable, and you will need to compile the application your self.</p>
+<ol class="arabic">
+<li><p class="first">Install go tools (official and most up-to-date instructions can be found at <a class="reference external" href="https://golang.org/doc/install">https://golang.org/doc/install</a>):</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">wget</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">dl</span><span class="o">.</span><span class="n">google</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">go</span><span class="o">/</span><span class="n">go1</span><span class="o">.</span><span class="mf">10.3</span><span class="o">.</span><span class="n">linux</span><span class="o">-</span><span class="n">amd64</span><span class="o">.</span><span class="n">tar</span><span class="o">.</span><span class="n">gz</span>
+<span class="o">&gt;</span> <span class="n">sudo</span> <span class="n">tar</span> <span class="o">-</span><span class="n">C</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">local</span> <span class="o">-</span><span class="n">xvzf</span> <span class="n">go1</span><span class="o">.</span><span class="mf">10.3</span><span class="o">.</span><span class="n">linux</span><span class="o">-</span><span class="n">amd64</span><span class="o">.</span><span class="n">tar</span><span class="o">.</span><span class="n">gz</span>
+<span class="o">&gt;</span> <span class="n">rm</span> <span class="n">go1</span><span class="o">.</span><span class="mf">10.3</span><span class="o">.</span><span class="n">linux</span><span class="o">-</span><span class="n">amd64</span><span class="o">.</span><span class="n">tar</span><span class="o">.</span><span class="n">gz</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Create the <code class="docutils literal"><span class="pre">go</span></code> directory in your current user’s directory</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">mkdir</span> <span class="o">~/</span><span class="n">go</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Add the <code class="docutils literal"><span class="pre">GOPATH</span></code> environment variable to the <code class="docutils literal"><span class="pre">~/.profile</span></code> file. Also add the <code class="docutils literal"><span class="pre">$GOPATH/bin</span></code> and the <code class="docutils literal"><span class="pre">/usr/local/go/bin</span></code> paths to the <code class="docutils literal"><span class="pre">PATH</span></code> environment variable. The modified lines within the <code class="docutils literal"><span class="pre">~/.profile</span></code> file should look like this:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">GOPATH</span><span class="o">=</span><span class="s2">&quot;$HOME/go&quot;</span>
+<span class="n">export</span> <span class="n">GOPATH</span>
+<span class="c1"># set PATH so it includes user&#39;s private bin directories</span>
+<span class="n">PATH</span><span class="o">=</span><span class="s2">&quot;$HOME/bin:$HOME/.local/bin:$GOPATH/bin:/usr/local/go/bin:$PATH&quot;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Reload your profile settings for the previous changes to take effectivity:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">source</span> <span class="o">~/.</span><span class="n">profile</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ol>
+<p>#.Execute the following command to confirm the environment variables were correctly setup:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">env</span> <span class="o">|</span> <span class="n">grep</span> <span class="n">GOPATH</span>
+<span class="n">GOPATH</span><span class="o">=/</span><span class="n">home</span><span class="o">/&lt;</span><span class="n">YOUR</span><span class="o">-</span><span class="n">USER</span><span class="o">&gt;/</span><span class="n">go</span>
+</pre></div>
+</div>
+</div></blockquote>
+<ol class="arabic">
+<li><p class="first">Test the go-tools installation</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">go</span> <span class="n">version</span>
+<span class="n">go</span> <span class="n">version</span> <span class="n">go1</span><span class="o">.</span><span class="mf">10.3</span> <span class="n">linux</span><span class="o">/</span><span class="n">amd64</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Download the source code to your <code class="docutils literal"><span class="pre">GOPATH</span></code></p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">wget</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">jcabmora</span><span class="o">/</span><span class="n">minibank</span><span class="o">/</span><span class="n">archive</span><span class="o">/</span><span class="n">week1</span><span class="o">.</span><span class="n">tar</span><span class="o">.</span><span class="n">gz</span> <span class="o">-</span><span class="n">O</span> <span class="o">-</span> <span class="o">|</span> <span class="n">tar</span> <span class="n">zxf</span> <span class="o">-</span> <span class="o">--</span><span class="n">strip</span><span class="o">-</span><span class="n">components</span><span class="o">=</span><span class="mi">2</span> <span class="o">-</span><span class="n">C</span> <span class="n">go</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Confirm by listing the files within your <code class="docutils literal"><span class="pre">GOPATH</span></code>:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span>&gt; ls -R $GOPATH
+/home/&lt;YOUR-USER&gt;/go:
+db.sql  src
+
+/home/&lt;YOUR-USER&gt;/go/src:
+minibank
+
+/home/&lt;YOUR-USER&gt;/go/src/minibank:
+handlers  main.go  models
+
+/home/&lt;YOUR-USER&gt;/go/src/minibank/handlers:
+account.go
+
+/home/&lt;YOUR-USER&gt;/go/src/minibank/models:
+account.go  db.go
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Get the dependencies:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span>&gt; cd $GOPATH &amp;&amp; go get -t minibank
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Build and install the app:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>&gt; cd $GOPATH &amp;&amp; go install minibank
+</pre></div>
+</div>
+</li>
+<li><p class="first">Run the service:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">minibank</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ol>
+</div>
+<div class="section" id="test-the-service">
+<h4>Test the Service<a class="headerlink" href="#test-the-service" title="Permalink to this headline">¶</a></h4>
+<ol class="arabic">
+<li><p class="first">On a new terminal which is not logged into the VM, execute the following command (you might need to install the <code class="docutils literal"><span class="pre">curl</span></code> utility). Use the External IP Address of your VM.</p>
+<blockquote>
+<div><pre class="literal-block">
+&gt; curl -v  <a class="reference external" href="http:/">http:/</a>/&lt;YOUR_VM_IP_ADDRESS&gt;:8080/api/account/register -d '{&quot;username&quot;: &quot;john&quot;, &quot;password&quot;: &quot;john1234567&quot;}'
+*   Trying &lt;YOUR_VM_IP_ADDRESS&gt;...
+* TCP_NODELAY set
+* Connected to &lt;YOUR_VM_IP_ADDRESS&gt; (&lt;YOUR_VM_IP_ADDRESS&gt;) port 8080 (#0)
+&gt; POST /api/account/register HTTP/1.1
+&gt; Host: &lt;YOUR_VM_IP_ADDRESS&gt;:8080
+&gt; User-Agent: curl/7.58.0
+&gt; Accept: */*
+&gt; Content-Length: 47
+&gt; Content-Type: application/x-www-form-urlencoded
+&gt;
+* upload completely sent off: 47 out of 47 bytes
+&lt; HTTP/1.1 200 OK
+&lt; Date: Fri, 31 Aug 2018 09:22:00 GMT
+&lt; Content-Length: 33
+&lt; Content-Type: application/octet-stream
+&lt;
+* Connection #0 to host &lt;YOUR_VM_IP_ADDRESS&gt; left intact
+Successfully registered account
+</pre>
+</div></blockquote>
+</li>
+<li><p class="first">Open another SSH session to the Lab VM, and log into a mysql session. Verify that the user record was created:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span>&gt; mysql -uminibank -pminibank minibank -e &quot;SELECT * FROM account;&quot;
+mysql: [Warning] Using a password on the command line interface can be insecure.
++----+----------+--------------------------------------------------------------+---------------+
+| id | username | password                                                     | timestamp     |
++----+----------+--------------------------------------------------------------+---------------+
+|  1 | john     | $2a$10$cH4qX7TJIkanYuNXcTwRuevZyU3d7aUKkDfftTzy6QZSxnWgSRFYi | 1535707320920 |
++----+----------+--------------------------------------------------------------+---------------+
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="section" id="stop-the-virtual-machine-and-create-an-image">
+<h2>Stop the Virtual Machine and create an image<a class="headerlink" href="#stop-the-virtual-machine-and-create-an-image" title="Permalink to this headline">¶</a></h2>
+<p>Once you have finished the previous steps, go back to the <strong>VM instance dashboard</strong> and stop the instance.
+This process usually takes several seconds to complete.
+We now want to create an image of the VM that we just created so we can make clones of the service.</p>
+<ol class="arabic simple">
+<li>On the left navigation bar of the Google Cloud Platform Console, click on <strong>Images</strong> and then click on the <strong>Create Image</strong> link.</li>
+<li>On the <strong>Create an image</strong> dialog, provide a name (e.g. <code class="docutils literal"><span class="pre">lab1-img</span></code>) and a description of your choice.  On <strong>Source disk</strong>, select the disk that corresponds to the VM we created before.</li>
+<li>Click on <strong>Create</strong> and wait a couple of minutes, or until the list of images reflects the image we just created.</li>
+</ol>
+</div>
+<div class="section" id="create-a-clone-of-the-vm">
+<h2>Create a Clone of the VM<a class="headerlink" href="#create-a-clone-of-the-vm" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic">
+<li><p class="first">Start again the process of creating a new VM as you did before. However,this time, during the boot disk selection, select the image that was previously created:</p>
+<blockquote>
+<div><img alt="../../_images/selectimg.png" src="../../_images/selectimg.png" />
+</div></blockquote>
+</li>
+<li><p class="first">Start an SSH session to the new VM. Once logged in, simply start the <code class="docutils literal"><span class="pre">minibank</span></code> command. The service shoudl be running. Test the service from your local workstation.</p>
+</li>
+</ol>
+</div>
+<div class="section" id="report">
+<h2>Report<a class="headerlink" href="#report" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li>Contrast the process of provisioning and setting up an application in a physical server versus the process of creating a VM instance.  Evaluate the pros and cons of each. What is similar and what is different.</li>
+<li>Suppose you share your service with some friends, and suddenly you have a high demand for the minibank service.  Given how we build the service, how can you increase the capacity? Provide some ideas that can help you scale the service to more users.</li>
+</ol>
+</div>
+<div class="section" id="clean-up">
+<h2>Clean up<a class="headerlink" href="#clean-up" title="Permalink to this headline">¶</a></h2>
+<p>In order to save credits, remove all the resources we created during this lab.</p>
+<ol class="arabic simple">
+<li>Stop and remove all the VM</li>
+<li>Remove the VM image</li>
+<li>Remove the firewall rule that was added during the lab.</li>
+</ol>
+</div>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>
