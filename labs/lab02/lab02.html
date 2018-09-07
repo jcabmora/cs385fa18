@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Lab No. 2: Containers &#8212; CS385 Cloud Systems Architecture  documentation</title>
+    <link rel="stylesheet" href="../../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="prev" title="Lab No. 1: Deploying an Application to Google Cloud" href="../lab01/lab01.html" />
+<link href="https://fonts.googleapis.com/css?family=Lusitana|Inconsolata|Roboto" rel="stylesheet">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../index.html">
+          CS385 Cloud Systems Architecture</a>
+        <span class="navbar-text navbar-version pull-left"><b></b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../syllabus.html">CS385 Cloud Systems Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab01/lab01.html">Lab No. 1: Deploying an Application to Google Cloud</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Lab No. 2: Containers</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">Lab No. 2: Containers</a><ul>
+<li><a class="reference internal" href="#part-1-setup-a-docker-host">Part 1: Setup a Docker Host</a></li>
+<li><a class="reference internal" href="#part-2-run-applications-in-docker">Part 2: Run applications in Docker</a></li>
+<li><a class="reference internal" href="#part-3-dockerfile-optimization">Part 3: Dockerfile Optimization</a></li>
+<li><a class="reference internal" href="#part-4-building-a-python-app">Part 4: Building a Python App</a></li>
+<li><a class="reference internal" href="#part-5-deploy-the-minibank-app">Part 5: Deploy the Minibank app</a><ul>
+<li><a class="reference internal" href="#what-to-turn-in">What to turn in:</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#additional-resources">Additional Resources</a></li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="../lab01/lab01.html" title="Previous Chapter: Lab No. 1: Deploying an Application to Google Cloud"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Lab No. 1: De...</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../../_sources/labs/lab02/lab02.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="section" id="lab-no-2-containers">
+<h1>Lab No. 2: Containers<a class="headerlink" href="#lab-no-2-containers" title="Permalink to this headline">¶</a></h1>
+<p>In the previous lab, you created a virtual machine and perform several installation tasks manually.</p>
+<p>In this lab we are going to:</p>
+<ol class="arabic simple">
+<li>Learn about how to automate Virtual Machine creation</li>
+<li>Learn how to run containers</li>
+<li>Build and optmize containers</li>
+<li>Deploy and manage containers using the basic docker tools</li>
+</ol>
+<div class="section" id="part-1-setup-a-docker-host">
+<h2>Part 1: Setup a Docker Host<a class="headerlink" href="#part-1-setup-a-docker-host" title="Permalink to this headline">¶</a></h2>
+<p>Google cloud provides a service called “Cloud Shell” that has several tools preconfigured to allow command-line administration of cloud services.  We are going to use this tool to create a Virtual machine.</p>
+<ol class="arabic">
+<li><p class="first">Start the cloud shell by click on the icon in the Top Icons bar.</p>
+<blockquote>
+<div><img alt="../../_images/cloudshellicon.png" src="../../_images/cloudshellicon.png" />
+</div></blockquote>
+</li>
+<li><p class="first">Create a new <strong>Ubuntu 18.04 LTS micro instance</strong> with an external IP instance by executing the following command:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">gcloud</span> <span class="n">compute</span> <span class="n">instances</span> <span class="n">create</span> <span class="n">docker</span><span class="o">-</span><span class="mi">01</span> <span class="o">--</span><span class="n">zone</span><span class="o">=</span><span class="n">us</span><span class="o">-</span><span class="n">west1</span><span class="o">-</span><span class="n">c</span> <span class="o">--</span><span class="n">machine</span><span class="o">-</span><span class="nb">type</span><span class="o">=</span><span class="n">n1</span><span class="o">-</span><span class="n">standard</span><span class="o">-</span><span class="mi">1</span> <span class="o">--</span><span class="n">subnet</span><span class="o">=</span><span class="n">default</span> <span class="o">--</span><span class="n">network</span><span class="o">-</span><span class="n">tier</span><span class="o">=</span><span class="n">PREMIUM</span> <span class="o">--</span><span class="n">maintenance</span><span class="o">-</span><span class="n">policy</span><span class="o">=</span><span class="n">MIGRATE</span> <span class="o">--</span><span class="n">scopes</span><span class="o">=</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="o">.</span><span class="n">googleapis</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">auth</span><span class="o">/</span><span class="n">cloud</span><span class="o">-</span><span class="n">platform</span> <span class="o">--</span><span class="n">tags</span><span class="o">=</span><span class="n">http</span><span class="o">-</span><span class="n">server</span><span class="p">,</span><span class="n">https</span><span class="o">-</span><span class="n">server</span> <span class="o">--</span><span class="n">image</span><span class="o">=</span><span class="n">ubuntu</span><span class="o">-</span><span class="mi">1804</span><span class="o">-</span><span class="n">bionic</span><span class="o">-</span><span class="n">v20180823</span> <span class="o">--</span><span class="n">image</span><span class="o">-</span><span class="n">project</span><span class="o">=</span><span class="n">ubuntu</span><span class="o">-</span><span class="n">os</span><span class="o">-</span><span class="n">cloud</span> <span class="o">--</span><span class="n">boot</span><span class="o">-</span><span class="n">disk</span><span class="o">-</span><span class="n">size</span><span class="o">=</span><span class="mi">20</span><span class="n">GB</span> <span class="o">--</span><span class="n">boot</span><span class="o">-</span><span class="n">disk</span><span class="o">-</span><span class="nb">type</span><span class="o">=</span><span class="n">pd</span><span class="o">-</span><span class="n">standard</span> <span class="o">--</span><span class="n">boot</span><span class="o">-</span><span class="n">disk</span><span class="o">-</span><span class="n">device</span><span class="o">-</span><span class="n">name</span><span class="o">=</span><span class="n">docker</span><span class="o">-</span><span class="mi">01</span>
+<span class="n">WARNING</span><span class="p">:</span> <span class="n">You</span> <span class="n">have</span> <span class="n">selected</span> <span class="n">a</span> <span class="n">disk</span> <span class="n">size</span> <span class="n">of</span> <span class="n">under</span> <span class="p">[</span><span class="mi">200</span><span class="n">GB</span><span class="p">]</span><span class="o">.</span> <span class="n">This</span> <span class="n">may</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">poor</span> <span class="n">I</span><span class="o">/</span><span class="n">O</span> <span class="n">performance</span><span class="o">.</span> <span class="n">For</span> <span class="n">more</span> <span class="n">information</span><span class="p">,</span> <span class="n">see</span><span class="p">:</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">developers</span><span class="o">.</span><span class="n">google</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">compute</span><span class="o">/</span><span class="n">docs</span><span class="o">/</span><span class="n">disks</span><span class="c1">#performance.</span>
+<span class="n">Created</span> <span class="p">[</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="o">.</span><span class="n">googleapis</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">compute</span><span class="o">/</span><span class="n">v1</span><span class="o">/</span><span class="n">projects</span><span class="o">/</span><span class="n">personal</span><span class="o">-</span><span class="mi">211918</span><span class="o">/</span><span class="n">zones</span><span class="o">/</span><span class="n">us</span><span class="o">-</span><span class="n">west1</span><span class="o">-</span><span class="n">c</span><span class="o">/</span><span class="n">instances</span><span class="o">/</span><span class="n">docker</span><span class="o">-</span><span class="mi">01</span><span class="p">]</span><span class="o">.</span>
+<span class="n">NAME</span>       <span class="n">ZONE</span>        <span class="n">MACHINE_TYPE</span>   <span class="n">PREEMPTIBLE</span>  <span class="n">INTERNAL_IP</span>  <span class="n">EXTERNAL_IP</span>    <span class="n">STATUS</span>
+<span class="n">docker</span><span class="o">-</span><span class="mi">01</span>  <span class="n">us</span><span class="o">-</span><span class="n">west1</span><span class="o">-</span><span class="n">c</span>  <span class="n">n1</span><span class="o">-</span><span class="n">standard</span><span class="o">-</span><span class="mi">1</span>               <span class="mf">10.138</span><span class="o">.</span><span class="mf">0.3</span>   <span class="mf">35.230</span><span class="o">.</span><span class="mf">13.202</span>  <span class="n">RUNNING</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">SSH into the docker-01 host, install docker and the current user to the <code class="docutils literal"><span class="pre">docker</span></code> user group:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span>&gt; sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+&gt; curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+&gt; sudo add-apt-repository &quot;deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable&quot;
+&gt; sudo apt-get update
+&gt; sudo apt-get install -y docker-ce=18.06.1~ce~3-0~ubuntu
+&gt; sudo usermod -aG docker $USER
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Log out and log back in in order to have a shell session with the updated group membership. Once you log back in test that docker daemon is running:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">docker</span> <span class="n">run</span> <span class="n">hello</span><span class="o">-</span><span class="n">world</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ol>
+<p>Make sure that you read an understand the output of the last command.</p>
+</div>
+<div class="section" id="part-2-run-applications-in-docker">
+<h2>Part 2: Run applications in Docker<a class="headerlink" href="#part-2-run-applications-in-docker" title="Permalink to this headline">¶</a></h2>
+<p>In this part of the lab you are going to build and deploy applications in docker containers. You need to be logged into the Virtual Machine that was created on Part 1 (<code class="docutils literal"><span class="pre">docker-01</span></code>) to complete the steps of this lab,</p>
+<ol class="arabic">
+<li><p class="first">We are going to run Kafka and Zookeeper in docker containers.  Create a directory called <code class="docutils literal"><span class="pre">kafka</span></code> in your home(<code class="docutils literal"><span class="pre">~</span></code>) directory, and change into it. Create a <code class="docutils literal"><span class="pre">Dockerfile</span></code> with the following content:</p>
+<blockquote>
+<div><pre class="literal-block">
+FROM openjdk:8-jre
+
+ENV KAFKA_VERSION 1.0.0
+ENV KAFKA_SCALA_VERSION 2.11
+ENV KAFKA_ARCH &quot;kafka_$KAFKA_SCALA_VERSION-$KAFKA_VERSION.tgz&quot;
+ENV KAFKA_HOME /opt/kafka
+
+WORKDIR /opt
+
+RUN apt-get update
+RUN apt-get install -y jq
+RUN wget -O - $(wget -qO- https://www.apache.org/dyn/closer.cgi\?as_json\=1\&amp;path\=/kafka/$KAFKA_VERSION/$KAFKA_ARCH | jq --raw-output '.preferred')kafka/$KAFKA_VERSION/$KAFKA_ARCH | tar zxf -
+RUN mv /opt/kafka_$KAFKA_SCALA_VERSION-$KAFKA_VERSION $KAFKA_HOME
+RUN sed -i 's/zookeeper.connect=localhost:2181/zookeeper.connect=zookeeper:2181/g' /opt/kafka/config/server.properties
+RUN sed -i 's/broker.id=0/broker.id=-1/g' /opt/kafka/config/server.properties
+
+CMD [&quot;/opt/kafka/bin/kafka-server-start.sh&quot;, &quot;/opt/kafka/config/server.properties&quot;]
+</pre>
+</div></blockquote>
+</li>
+<li><p class="first">Build the docker image (make sure you are in the <code class="docutils literal"><span class="pre">~/kafka</span></code> directory):</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">docker</span> <span class="n">build</span> <span class="o">-</span><span class="n">t</span> <span class="n">kafka</span><span class="o">-</span><span class="n">cs385</span> <span class="o">.</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Run the <code class="docutils literal"><span class="pre">docker</span> <span class="pre">images</span></code> command. Notice how you have entries for the image that was just built and for the base image:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">docker</span> <span class="n">images</span>
+<span class="n">REPOSITORY</span>          <span class="n">TAG</span>                 <span class="n">IMAGE</span> <span class="n">ID</span>            <span class="n">CREATED</span>             <span class="n">SIZE</span>
+<span class="n">kafka</span><span class="o">-</span><span class="n">cs385</span>         <span class="n">latest</span>              <span class="mi">1</span><span class="n">f3ed9b84a19</span>        <span class="mi">7</span> <span class="n">seconds</span> <span class="n">ago</span>       <span class="mi">569</span><span class="n">MB</span>
+<span class="n">openjdk</span>             <span class="mi">8</span><span class="n">u181</span><span class="o">-</span><span class="n">jre</span>           <span class="mi">66</span><span class="n">bf39162ea7</span>        <span class="mi">2</span> <span class="n">days</span> <span class="n">ago</span>          <span class="mi">443</span><span class="n">MB</span>
+<span class="n">hello</span><span class="o">-</span><span class="n">world</span>         <span class="n">latest</span>              <span class="mi">2</span><span class="n">cb0d9787c4d</span>        <span class="mi">8</span> <span class="n">weeks</span> <span class="n">ago</span>         <span class="mf">1.85</span><span class="n">kB</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Verfiy the image layers by using the <code class="docutils literal"><span class="pre">docker</span> <span class="pre">history</span></code> command. The output should return several lines, each one corresponds to a <em>layer</em>. You can see that the last layers added correspond to the build steps from the Dockerfile we just built.  Compare the history of <code class="docutils literal"><span class="pre">kafka-cs385</span></code> with the history of <code class="docutils literal"><span class="pre">openjdk:8-jre</span></code>.  How many layers on top of <code class="docutils literal"><span class="pre">openjdk:8-jre</span></code> were added by our kafka <code class="docutils literal"><span class="pre">Dockerfile</span></code>? Can you find the correspondence between layers and commands in the kafka-cs385  <code class="docutils literal"><span class="pre">Dockerfile</span></code>? How much bigger in MB is <code class="docutils literal"><span class="pre">kafka-cs385</span></code> when compared to <code class="docutils literal"><span class="pre">openjdk:8-jre</span></code>?</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">docker</span> <span class="n">history</span> <span class="n">kafka</span><span class="o">-</span><span class="n">cs385</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Before proceeding any further, we need to test that our image runs.  To do this, we first need to create a user-defined bridge network and then start a Zookeeper server.  To run zookeeper we are going to use the official <a class="reference external" href="https://hub.docker.com/_/zookeeper/">Apache Zookeeper Docker Image</a>. To run it, use this command:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">docker</span> <span class="n">network</span> <span class="n">create</span> <span class="n">testnet</span>
+<span class="o">&gt;</span> <span class="n">docker</span> <span class="n">run</span> <span class="o">-</span><span class="n">d</span> <span class="o">--</span><span class="n">name</span> <span class="n">zookeeper</span> <span class="o">--</span><span class="n">net</span> <span class="n">testnet</span> <span class="n">zookeeper</span><span class="p">:</span><span class="mf">3.4</span><span class="o">.</span><span class="mi">11</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Verify that the Zookeeper container is running by using the <code class="docutils literal"><span class="pre">docker</span> <span class="pre">ps</span></code> command</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">docker</span> <span class="n">ps</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Now that Zookeeper is running we can start Kafka:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">docker</span> <span class="n">run</span> <span class="o">-</span><span class="n">d</span> <span class="o">--</span><span class="n">name</span> <span class="n">kafka</span> <span class="o">--</span><span class="n">net</span> <span class="n">testnet</span> <span class="n">kafka</span><span class="o">-</span><span class="n">cs385</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Verify that both Kafka and Zookeeper are running by executing the <code class="docutils literal"><span class="pre">docker</span> <span class="pre">ps</span></code> command:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">docker</span> <span class="n">ps</span>
+<span class="n">CONTAINER</span> <span class="n">ID</span>        <span class="n">IMAGE</span>                <span class="n">COMMAND</span>                  <span class="n">CREATED</span>             <span class="n">STATUS</span>              <span class="n">PORTS</span>                          <span class="n">NAMES</span>
+<span class="mi">6</span><span class="n">a76c10946f9</span>        <span class="n">kafka</span><span class="o">-</span><span class="n">cs385</span>          <span class="s2">&quot;/opt/kafka/bin/ka...&quot;</span>   <span class="mi">7</span> <span class="n">seconds</span> <span class="n">ago</span>       <span class="n">Up</span> <span class="mi">6</span> <span class="n">minutes</span>                                       <span class="n">kafka</span>
+<span class="n">c53269318237</span>        <span class="n">zookeeper</span><span class="p">:</span><span class="mf">3.4</span><span class="o">.</span><span class="mi">11</span>     <span class="s2">&quot;/docker-entrypoin...&quot;</span>   <span class="mi">4</span> <span class="n">hours</span> <span class="n">ago</span>         <span class="n">Up</span> <span class="mi">4</span> <span class="n">hours</span>          <span class="mi">2181</span><span class="o">/</span><span class="n">tcp</span><span class="p">,</span> <span class="mi">2888</span><span class="o">/</span><span class="n">tcp</span><span class="p">,</span> <span class="mi">3888</span><span class="o">/</span><span class="n">tcp</span>   <span class="n">zookeeper</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">To test Kafka, we are going to log into the container. To do this, we will use the <code class="docutils literal"><span class="pre">docker</span> <span class="pre">exec</span></code> command in <em>interactive</em> mode:</p>
+<blockquote>
+<div><pre class="literal-block">
+&gt; docker exec -it kafka bash
+root&#64;6a76c10946f9:/opt#
+</pre>
+</div></blockquote>
+</li>
+<li><p class="first">Notice how your shell prompt changed, and it includes the container id as host name. You can now run commands that will be executed inside the container. We are going to do now several basic interactions with Kafka (refer to the <a class="reference external" href="https://kafka.apache.org/quickstart">Apache Kafka Quickstart</a> First create a topic:</p>
+<blockquote>
+<div><pre class="literal-block">
+root&#64;6a76c10946f9:/opt# kafka/bin/kafka-topics.sh --create --zookeeper zookeeper:2181 --replication-factor 1 --partitions 1 --topic mytopic
+Created topic &quot;mytopic&quot;.
+</pre>
+</div></blockquote>
+</li>
+<li><p class="first">Now we use the <strong>Kafka console producer</strong> to write some messages:</p>
+<blockquote>
+<div><pre class="literal-block">
+root&#64;6a76c10946f9:/opt# kafka/bin/kafka-console-producer.sh --broker-list localhost:9092 --topic mytopic
+</pre>
+</div></blockquote>
+</li>
+<li><p class="first">Enter several lines of text and press <code class="kbd docutils literal"><span class="pre">Ctrl+C</span></code> to close the console producer. Now let’s read those messages using the console consumer:</p>
+<pre class="literal-block">
+root&#64;6a76c10946f9:/opt# kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic mytopic --from-beginning
+</pre>
+</li>
+<li><p class="first">Notice how the messages that you created earlier are retrieved by the console consumer. Once all the messages are written to the terminal, press <code class="kbd docutils literal"><span class="pre">Ctrl+C</span></code> to terminate the console consumer.</p>
+</li>
+<li><p class="first">Exit the container (by typing the <code class="docutils literal"><span class="pre">exit</span></code> command as you do with a normal bash session). We now want to terminate the container by using the docker stop command:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">docker</span> <span class="n">stop</span> <span class="n">kafka</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">If you run the <code class="docutils literal"><span class="pre">docker</span> <span class="pre">ps</span></code> command, the container is not shown as running anymore. Nevertheless, the container still exists and it can be restarted.  Compare the output of <code class="docutils literal"><span class="pre">docker</span> <span class="pre">ps</span></code> with the same command but using the <code class="docutils literal"><span class="pre">-a</span></code> option which shows all the containers.  If we want to remove a container completely, then we must use the <code class="docutils literal"><span class="pre">docker</span> <span class="pre">rm</span></code> command:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">docker</span> <span class="n">rm</span> <span class="n">kafka</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ol>
+</div>
+<div class="section" id="part-3-dockerfile-optimization">
+<h2>Part 3: Dockerfile Optimization<a class="headerlink" href="#part-3-dockerfile-optimization" title="Permalink to this headline">¶</a></h2>
+<p>The Dockerfile that we used works, but it generates an image that is rather big in size. We can reduce the size of the image by merging several instructions together.</p>
+<ol class="arabic">
+<li><p class="first">Edit the docker file to merge all the <strong>RUN</strong> instructions into a single instruction.  How much space do you save by doing this? Build this dockerfile and tag is as <code class="docutils literal"><span class="pre">kafka-cs385:consolidated_run</span></code>:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">docker</span> <span class="n">build</span> <span class="o">-</span><span class="n">t</span> <span class="n">kafka</span><span class="o">-</span><span class="n">cs385</span><span class="p">:</span><span class="n">consolidated_run</span> <span class="o">.</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">After you successfully build this new image, run it as we did before with the <code class="docutils literal"><span class="pre">kafka-cs385</span></code> image, and make sure that Kafka is working and you can create topics, produce messages and retrieve them.</p>
+</li>
+<li><p class="first">We can also reduce the amount of used space by removing the cache of installation utilities. Add a command to the <strong>RUN</strong> instruction to remove the <code class="docutils literal"><span class="pre">apt</span></code> cache.  Hint: The <a class="reference external" href="https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practices/#run">Dockerfile best practices</a> reference has very valuable information that can help you. Build this image and tag it as <code class="docutils literal"><span class="pre">kafka-cs385:nocache</span></code></p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">docker</span> <span class="n">build</span> <span class="o">-</span><span class="n">t</span> <span class="n">kafka</span><span class="o">-</span><span class="n">cs385</span><span class="p">:</span><span class="n">nocache</span> <span class="o">.</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">As we did before, make sure that your image works and you can interact with topics.</p>
+</li>
+<li><p class="first">We can further reduce the size of our Kafka image by using a smaller base image.  The <a class="reference external" href="https://hub.docker.com/_/openjdk/">OpenJDK official docker repository</a> has many images that can be used. Typically, the <em>slim</em> versions are debian based images of much smaller size. Update the Dockerfile to use a <em>slim</em> base image. Note that you will need not only to update the base image, but you will probably need to install utilities that are no longer included in the base image and are needed to complete the installation of kafka. Build this image and tag is as <code class="docutils literal"><span class="pre">kafka-cs385:slim</span></code></p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">docker</span> <span class="n">build</span> <span class="o">-</span><span class="n">t</span> <span class="n">kafka</span><span class="o">-</span><span class="n">cs385</span><span class="p">:</span><span class="n">slim</span> <span class="o">.</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">As before, make sure that your image works and you can interact with topics.</p>
+</li>
+<li><p class="first">After performing the previous optimizations, you can compare the sizes of the resulting images (your image sizes might differ a little bit, but should be close to these values)</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">docker</span> <span class="n">images</span>
+<span class="n">REPOSITORY</span>          <span class="n">TAG</span>                 <span class="n">IMAGE</span> <span class="n">ID</span>            <span class="n">CREATED</span>             <span class="n">SIZE</span>
+<span class="n">kafka</span><span class="o">-</span><span class="n">cs385</span>         <span class="n">slim</span>                <span class="mi">0</span><span class="n">c76aa21f306</span>        <span class="mi">5</span> <span class="n">minutes</span> <span class="n">ago</span>       <span class="mi">263</span> <span class="n">MB</span>
+<span class="n">kafka</span><span class="o">-</span><span class="n">cs385</span>         <span class="n">nocache</span>             <span class="n">eda22e7be277</span>        <span class="mi">12</span> <span class="n">minutes</span> <span class="n">ago</span>      <span class="mi">594</span> <span class="n">MB</span>
+<span class="n">kafka</span><span class="o">-</span><span class="n">cs385</span>         <span class="n">consolidated_run</span>    <span class="n">e9b0d0b69019</span>        <span class="mi">23</span> <span class="n">minutes</span> <span class="n">ago</span>      <span class="mi">610</span> <span class="n">MB</span>
+<span class="n">kafka</span><span class="o">-</span><span class="n">cs385</span>         <span class="n">latest</span>              <span class="mi">0</span><span class="n">d5561696173</span>        <span class="mi">30</span> <span class="n">minutes</span> <span class="n">ago</span>      <span class="mi">664</span> <span class="n">MB</span>
+<span class="n">openjdk</span>             <span class="mi">8</span><span class="o">-</span><span class="n">jre</span>               <span class="mi">97</span><span class="n">c270c3cab0</span>        <span class="mi">2</span> <span class="n">weeks</span> <span class="n">ago</span>         <span class="mi">538</span> <span class="n">MB</span>
+<span class="n">openjdk</span>             <span class="mi">8</span><span class="o">-</span><span class="n">jre</span><span class="o">-</span><span class="n">slim</span>          <span class="mi">837969</span><span class="n">d6f968</span>        <span class="mi">2</span> <span class="n">weeks</span> <span class="n">ago</span>         <span class="mi">205</span> <span class="n">MB</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">You can go even further by instead of using an image based on debian, you can use an <em>alpine</em> base image to reduce the size of the image even more.  You will need to do some experimentation to figure out which utilities need to be installed to be able to install kafka, and also to run it.</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">docker</span> <span class="n">images</span>
+<span class="n">REPOSITORY</span>          <span class="n">TAG</span>                 <span class="n">IMAGE</span> <span class="n">ID</span>            <span class="n">CREATED</span>             <span class="n">SIZE</span>
+<span class="n">kafka</span><span class="o">-</span><span class="n">cs385</span>         <span class="n">alpine</span>              <span class="mi">44</span><span class="n">ea7ee63d23</span>        <span class="mi">16</span> <span class="n">hours</span> <span class="n">ago</span>        <span class="mi">144</span> <span class="n">MB</span>
+<span class="n">kafka</span><span class="o">-</span><span class="n">cs385</span>         <span class="n">slim</span>                <span class="mi">0</span><span class="n">c76aa21f306</span>        <span class="mi">21</span> <span class="n">hours</span> <span class="n">ago</span>        <span class="mi">263</span> <span class="n">MB</span>
+<span class="n">kafka</span><span class="o">-</span><span class="n">cs385</span>         <span class="n">nocache</span>             <span class="n">eda22e7be277</span>        <span class="mi">21</span> <span class="n">hours</span> <span class="n">ago</span>        <span class="mi">594</span> <span class="n">MB</span>
+<span class="n">kafka</span><span class="o">-</span><span class="n">cs385</span>         <span class="n">consolidated_run</span>    <span class="n">e9b0d0b69019</span>        <span class="mi">22</span> <span class="n">hours</span> <span class="n">ago</span>        <span class="mi">610</span> <span class="n">MB</span>
+<span class="n">kafka</span><span class="o">-</span><span class="n">cs385</span>         <span class="n">latest</span>              <span class="mi">0</span><span class="n">d5561696173</span>        <span class="mi">22</span> <span class="n">hours</span> <span class="n">ago</span>        <span class="mi">664</span> <span class="n">MB</span>
+<span class="n">zookeeper</span>           <span class="mf">3.4</span><span class="o">.</span><span class="mi">11</span>              <span class="mi">09</span><span class="n">fe1e7c8f0f</span>        <span class="mi">11</span> <span class="n">days</span> <span class="n">ago</span>         <span class="mi">146</span> <span class="n">MB</span>
+<span class="n">openjdk</span>             <span class="mi">8</span><span class="o">-</span><span class="n">jre</span>               <span class="mi">97</span><span class="n">c270c3cab0</span>        <span class="mi">2</span> <span class="n">weeks</span> <span class="n">ago</span>         <span class="mi">538</span> <span class="n">MB</span>
+<span class="n">openjdk</span>             <span class="mi">8</span><span class="o">-</span><span class="n">jre</span><span class="o">-</span><span class="n">alpine</span>        <span class="n">b36ec9de53a8</span>        <span class="mi">2</span> <span class="n">weeks</span> <span class="n">ago</span>         <span class="mf">81.4</span> <span class="n">MB</span>
+<span class="n">openjdk</span>             <span class="mi">8</span><span class="o">-</span><span class="n">jre</span><span class="o">-</span><span class="n">slim</span>          <span class="mi">837969</span><span class="n">d6f968</span>        <span class="mi">2</span> <span class="n">weeks</span> <span class="n">ago</span>         <span class="mi">205</span> <span class="n">MB</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ol>
+</div>
+<div class="section" id="part-4-building-a-python-app">
+<h2>Part 4: Building a Python App<a class="headerlink" href="#part-4-building-a-python-app" title="Permalink to this headline">¶</a></h2>
+<p>In this section we are going to learn how to interact with Kafka programatically using the <a class="reference external" href="https://github.com/Parsely/pykafka">pykafka</a> python library.
+We are going to create a simple app that exposes a REST API that receives messages and writes them to Kafka topics.  We are then going to create another app that consumes those messages.</p>
+<ol class="arabic">
+<li><p class="first">SSH into <strong>docker-0</strong>. Create a new directory called <code class="docutils literal"><span class="pre">kafkaclient</span></code> and change into it.</p>
+</li>
+<li><p class="first">Create a file called <code class="docutils literal"><span class="pre">app.py</span></code> with the following content:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">flask</span> <span class="k">import</span> <span class="n">Flask</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">Response</span>
+<span class="kn">from</span> <span class="nn">pykafka</span> <span class="k">import</span> <span class="n">KafkaClient</span>
+
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">client</span> <span class="o">=</span> <span class="n">KafkaClient</span><span class="p">(</span><span class="n">zookeeper_hosts</span><span class="o">=</span><span class="s2">&quot;zookeeper&quot;</span><span class="p">)</span>
+
+<span class="c1"># create topics</span>
+
+<span class="n">topics</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;deliveries&#39;</span><span class="p">,</span> <span class="s1">&#39;updates&#39;</span><span class="p">]</span>
+
+<span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">topics</span><span class="p">:</span>
+    <span class="n">client</span><span class="o">.</span><span class="n">topics</span><span class="p">[</span><span class="n">item</span><span class="p">]</span>
+
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/kafka&quot;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">write_message</span><span class="p">():</span>
+    <span class="n">payload</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">get_json</span><span class="p">()</span>
+    <span class="n">req_topic</span> <span class="o">=</span> <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;topic&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+    <span class="n">req_message</span> <span class="o">=</span> <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;message&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">req_topic</span> <span class="ow">in</span> <span class="n">client</span><span class="o">.</span><span class="n">topics</span><span class="p">:</span>
+        <span class="n">topic</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">topics</span><span class="p">[</span><span class="n">req_topic</span><span class="p">]</span>
+        <span class="k">with</span> <span class="n">topic</span><span class="o">.</span><span class="n">get_sync_producer</span><span class="p">(</span><span class="n">max_queued_messages</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">linger_ms</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="k">as</span> <span class="n">producer</span><span class="p">:</span>
+            <span class="n">producer</span><span class="o">.</span><span class="n">produce</span><span class="p">(</span><span class="n">req_message</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Response</span><span class="p">(</span><span class="n">response</span><span class="o">=</span><span class="s1">&#39;{&quot;msg&quot;: &quot;Success&quot;}&#39;</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">mimetype</span><span class="o">=</span><span class="s2">&quot;application/json&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Response</span><span class="p">(</span><span class="n">response</span><span class="o">=</span><span class="s1">&#39;{&quot;msg&quot;: &quot;Invalid Topic&quot;}&#39;</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">mimetype</span><span class="o">=</span><span class="s2">&quot;application/json&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Create a file called <code class="docutils literal"><span class="pre">requirements.txt</span></code> with the following content:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Flask</span><span class="o">==</span><span class="mf">0.12</span><span class="o">.</span><span class="mi">2</span>
+<span class="n">pykafka</span><span class="o">==</span><span class="mf">2.6</span><span class="o">.</span><span class="mi">0</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Create a <code class="docutils literal"><span class="pre">Dockerfile</span></code> with the following contents:</p>
+<blockquote>
+<div><pre class="literal-block">
+FROM python:2.7-alpine3.6
+
+COPY * /opt/kafkaclient/
+
+WORKDIR /opt/kafkaclient
+
+RUN apk add --no-cache g++ \
+    &amp;&amp; pip install -r requirements.txt
+
+ENV FLASK_APP app.py
+
+CMD [&quot;flask&quot;, &quot;run&quot;, &quot;--host=0.0.0.0&quot;, &quot;--port=5000&quot;]
+</pre>
+</div></blockquote>
+</li>
+<li><p class="first">Once all these files have been created, the directory tree of <code class="docutils literal"><span class="pre">kafkaclient</span></code> should look like this:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span>kafkaclient
+   ├── app.py
+   ├── Dockerfile
+   └── requirements.txt
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Build the image:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span>  <span class="n">docker</span> <span class="n">build</span> <span class="o">-</span><span class="n">t</span> <span class="n">kafkaclient</span> <span class="o">.</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Start Zookeeper and Kafka using the same instructions from the previous section (Use the most optimized Kafka image available)</p>
+</li>
+<li><p class="first">Start a kafkaclient container that <em>exposes</em> the container’s port 5000 in the host’s port 80:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">docker</span> <span class="n">run</span> <span class="o">--</span><span class="n">rm</span> <span class="o">-</span><span class="n">d</span> <span class="o">-</span><span class="n">p</span> <span class="mi">80</span><span class="p">:</span><span class="mi">5000</span> <span class="o">--</span><span class="n">name</span> <span class="n">kafkaclient</span> <span class="o">--</span><span class="n">net</span> <span class="n">testnet</span> <span class="n">kafkaclient</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">The application has two hard-coded topics (“deliveries” and “updates”), and only writes messages to those topics. To write a message, we will use the <code class="docutils literal"><span class="pre">POST</span> <span class="pre">/kafka</span></code> REST API endpoint. On another terminal, in your workstation (i.e. without logging into <code class="docutils literal"><span class="pre">docker-0</span></code>) execute the following command (replace <code class="docutils literal"><span class="pre">DOCKER-01_EXTERNAL_IP_ADDRESS</span></code> with the corresponding value)</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">curl</span> <span class="o">-</span><span class="n">X</span> <span class="n">POST</span> <span class="o">-</span><span class="n">H</span> <span class="s1">&#39;Content-type: application/json&#39;</span> <span class="n">http</span><span class="p">:</span><span class="o">//&lt;</span><span class="n">DOCKER</span><span class="o">-</span><span class="mi">01</span><span class="n">_EXTERNAL_IP_ADDRESS</span><span class="o">&gt;/</span><span class="n">kafka</span> <span class="o">-</span><span class="n">d</span> <span class="s1">&#39;{&quot;topic&quot;: &quot;deliveries&quot;, &quot;message&quot;: &quot;Chuck Norris just delivered you a roundhouse kick.&quot;}&#39;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Try writing different messages and writing to topics that are not <code class="docutils literal"><span class="pre">deliveries</span></code> or <code class="docutils literal"><span class="pre">updates</span></code>.</p>
+</li>
+<li><p class="first">Back into a session where you are logged into <code class="docutils literal"><span class="pre">docker-01</span></code>, log into the <code class="docutils literal"><span class="pre">kafka</span></code> container and start a console consumer for the “deliveries” topic (we used the <code class="docutils literal"><span class="pre">kafka-console-consumer</span></code> back in the <strong>Building a Dockerfile: Apache Kafka</strong> section). Write some messages to the <code class="docutils literal"><span class="pre">deliveries</span></code> topic using the <code class="docutils literal"><span class="pre">POST</span> <span class="pre">/kafka</span></code> REST API and notice the effect on the console consumer.</p>
+</li>
+</ol>
+</div>
+<div class="section" id="part-5-deploy-the-minibank-app">
+<h2>Part 5: Deploy the Minibank app<a class="headerlink" href="#part-5-deploy-the-minibank-app" title="Permalink to this headline">¶</a></h2>
+<p>In this section you are going to work on your own. The objective is to deploy the minibank application in docker. You need to follow these guidelines:</p>
+<ul class="simple">
+<li>The golang application and the mysql service need to run in two different containers.  You will need to make (a very simple) modification to the minibank application that allows it to handle the fact that the mysql daemon is not running under the same host.</li>
+<li>The level of optimization of the resulting images will be taken into consideration when your work is evaluated.</li>
+<li>For the minibank applicaton, use an alpine linux base image. For the mysql image, use an ubuntu or debian image. If you prefer to use MariaDB instead of mysql, that is perfectly fine.</li>
+<li>The images should not require mounting any directories to run.</li>
+<li>The minibank application should be able to handle the fact that the mysql service might not be running when it is started. You will need to modify the minibank sourcecode to return a 503 response in such case.</li>
+<li><dl class="first docutils">
+<dt>You will need to provide a Makefile that will have the following targets</dt>
+<dd><ul class="first last">
+<li>A target called <code class="docutils literal"><span class="pre">minibank</span></code> that will build the minibank docker image. To compile minibank, you need to use the procedure explained in <a class="reference external" href="https://github.com/docker-library/docs/tree/master/golang#compile-your-app-inside-the-docker-container">https://github.com/docker-library/docs/tree/master/golang#compile-your-app-inside-the-docker-container</a>. (See note below about the system where this will be tested)</li>
+<li>A target called <code class="docutils literal"><span class="pre">mysql</span></code> that will build the mysql image</li>
+<li>A target called <code class="docutils literal"><span class="pre">run-images</span></code> that will start the minibank and the mysql containers.</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+<div class="section" id="what-to-turn-in">
+<h3>What to turn in:<a class="headerlink" href="#what-to-turn-in" title="Permalink to this headline">¶</a></h3>
+<p>A link to a public Github repository that will contain:</p>
+<ol class="arabic simple">
+<li>The updated minibank source code</li>
+<li>The Dockerfile for the minibank application</li>
+<li>The Dockerfile for mysql</li>
+<li>The makefile</li>
+<li>(if needed) A README file with any instructions or additional information that you deem appropriate.</li>
+</ol>
+<p>Your submission will be tested in an <strong>Ubuntu 18.04 System</strong> that <strong>will not have the golang</strong> binaries installed. If your make targets require to have a golang installation, they will not work. The only software that you are guaranteed to be installed on that system are docker, make, git and curl/wget. If there is another tool that is required to build/run your submission, make sure you ask or at least document it.</p>
+<p>The minibank source code for this assignment is available at <a class="reference external" href="https://github.com/jcabmora/minibank/tree/week1/week1">https://github.com/jcabmora/minibank/tree/week1/week1</a></p>
+</div>
+</div>
+<div class="section" id="additional-resources">
+<h2>Additional Resources<a class="headerlink" href="#additional-resources" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://docs.docker.com/v17.09/engine/docker-overview">https://docs.docker.com/v17.09/engine/docker-overview</a></p>
+</div>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

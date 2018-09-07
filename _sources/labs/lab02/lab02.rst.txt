@@ -1,258 +1,343 @@
-*******************
-Lab No. 02: Scaling
-*******************
+*********************
+Lab No. 2: Containers
+*********************
+
+In the previous lab, you created a virtual machine and perform several installation tasks manually.
+
+In this lab we are going to:
+
+1) Learn about how to automate Virtual Machine creation
+2) Learn how to run containers
+3) Build and optmize containers
+4) Deploy and manage containers using the basic docker tools
 
 
-In this lab we will deploy a simple Web Service, and we will scale it horizontally and vertically and measure different levels of performance.
-
-
-Deploy a Simple Web Service
+Part 1: Setup a Docker Host
 ===========================
 
+Google cloud provides a service called "Cloud Shell" that has several tools preconfigured to allow command-line administration of cloud services.  We are going to use this tool to create a Virtual machine.
 
-#. Deploy a new micro instance on google cloud platform. Select the same properties you used for the instances that we created during Lab No. 1 (micro instance, 0.6 GB memory, Ubuntu 16.04 LTS, standard persistent disk of 10 GB, HTTP/HTTPS traffic enabled.  Name this instance `restserver-0`
+#. Start the cloud shell by click on the icon in the Top Icons bar.
 
-#. SSH into the instance.  Note: You might need to create a new set of ssh keys.
+    .. image:: cloudshellicon.png
 
-#. We need to install the software dependencies to be able to run a REST API with the Flask framework.  Run the following sequence of commands in your instance
-
-    .. parsed-literal::
-        >> sudo apt-get update
-        >> sudo apt-get install -y python-pip
-        >> sudo pip install flask
-        >> sudo mkdir /opt/restserver
-
-#. Create or copy a filled called ``restserver.py`` into the instance's ``/opt/restserver`` directory with the following contents:
-
-    .. literalinclude:: restserver.py 
-
-#. Start the service:
+#. Create a new **Ubuntu 18.04 LTS micro instance** with an external IP instance by executing the following command:
 
     .. parsed-literal::
-        >> sudo FLASK_APP=/opt/restserver/restserver.py flask run --host=0.0.0.0 --port=80
+        > gcloud compute instances create docker-01 --zone=us-west1-c --machine-type=n1-standard-1 --subnet=default --network-tier=PREMIUM --maintenance-policy=MIGRATE --scopes=https://www.googleapis.com/auth/cloud-platform --tags=http-server,https-server --image=ubuntu-1804-bionic-v20180823 --image-project=ubuntu-os-cloud --boot-disk-size=20GB --boot-disk-type=pd-standard --boot-disk-device-name=docker-01
+        WARNING: You have selected a disk size of under [200GB]. This may result in poor I/O performance. For more information, see: https://developers.google.com/compute/docs/disks#performance.
+        Created [https://www.googleapis.com/compute/v1/projects/personal-211918/zones/us-west1-c/instances/docker-01].
+        NAME       ZONE        MACHINE_TYPE   PREEMPTIBLE  INTERNAL_IP  EXTERNAL_IP    STATUS
+        docker-01  us-west1-c  n1-standard-1               10.138.0.3   35.230.13.202  RUNNING
 
-#. Test your service.  While on a terminal session on your workstation (i.e. not on your VM instance), type the following command (replace ``<YOUR_INSTANCE_ADDR>`` with the External IP Address of your instance):
-
-    .. parsed-literal::
-        >> curl -X POST -H 'Content-Type: application/json' http://<YOUR_INSTANCE_ADDR>/fibonacci -d '{"fibonacci_number": 20}'
-    
-    You should see the following output:
-    
-    .. parsed-literal::
-        {"fibonacci_number": 20, "value": 6765}
-
-#. We need to save the instance at its current state so we can easily make clones to scale the service horizontally.  To do this, first close your SSH session.  After you have logged out of your SSH session, go back to the Google Cloud Platform console, and from the VM instances dashboard, select your instance, and from the context menu on the right select **Stop**:
-
-    .. image:: stop_instance.png
-
-#. To create an image, select **Images** from the left menu. Click on the **[+] CREATE IMAGE** link, and on the **Create an image** prompt enter "lab02-restserver" as Name and provide a Description of your preference. Leave **Source** as "Disk" and from source disk, select "restserver-0" (The instance that we created and stopped during this lab). Once all these options have been completed/selected, click on the **Create** button.  The creation of the image will take a few minutes. 
-
-
-Measuring your instance performance
-===================================
-
-To measure the performance of our web service we are going to use *ApacheBench*, also known as ``ab``, a popular benchmarking tool (https://httpd.apache.org/docs/2.4/programs/ab.html). 
-
-#. Restart your instance, SSH into it and restart the Fibonacci REST API service we previously created. Note that your instance will probably be assigned a different External IP Address. This time we want to leave the service running in the background. Execute the following command to run the REST API server in the background (After this you can close the SSH session and the restserver will keep running in the background. Be aware that this does not mean that the REST server will autostart if you stop/start the instance.)
+#. SSH into the docker-01 host, install docker and the current user to the ``docker`` user group:
 
     .. parsed-literal::
-        nohup sudo FLASK_APP=/opt/restserver/restserver.py flask run --host=0.0.0.0 --port=80 &
+        > sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+        > curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+        > sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+        > sudo apt-get update
+        > sudo apt-get install -y docker-ce=18.06.1~ce~3-0~ubuntu
+        > sudo usermod -aG docker $USER
 
-#. We are now going to create an instance in which we will execute the benchmarks.  Deploy another micro instance on google cloud platform. Select micro instance, 0.6 GB memory, Ubuntu 16.04 LTS, standard persistent disk of 10 GB, and  **HTTP/HTTPS traffic disabled**.  Name this instance `tester-0`
-
-#. SSH into the `tester-0` instance. Run the following sequence of commands to install ``ab``:
-
-    .. parsed-literal::
-        >> sudo apt-get update
-        >> sudo apt-get install -y apache2-utils build-essential
-
-#. Create a file called ``payload.json`` with a single line with ``{"fibonacci_number": 20}`` as its content:
+#. Log out and log back in in order to have a shell session with the updated group membership. Once you log back in test that docker daemon is running:
 
     .. parsed-literal::
-        >> echo '{"fibonacci_number": 20}' > payload.json
+		> docker run hello-world
 
-#. Run a test ``ab`` benchmark to verify installation (replace ``<REST_SERVER_EXT_IP>`` with the external IP address of the REST server):
+Make sure that you read an understand the output of the last command.
 
-    .. parsed-literal::
-        >> ab -p payload.json -T application/json -m POST -c 10 -n 10 -s 10 -r http://<REST_SERVER_EXT_IP>/fibonacci 
+Part 2: Run applications in Docker
+==================================
 
-    The command should produce an output similar to this:
-
-    .. parsed-literal::
-
-        This is ApacheBench, Version 2.3 <$Revision: 1706008 $>
-        Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
-        Licensed to The Apache Software Foundation, http://www.apache.org/
-
-        Benchmarking 35.188.78.135 (be patient).....done
+In this part of the lab you are going to build and deploy applications in docker containers. You need to be logged into the Virtual Machine that was created on Part 1 (``docker-01``) to complete the steps of this lab,
 
 
-        Server Software:        nginx/1.10.3
-        Server Hostname:        35.188.78.135
-        Server Port:            80
-
-        Document Path:          /fibonacci
-        Document Length:        246 bytes
-
-        Concurrency Level:      10
-        Time taken for tests:   0.073 seconds
-        Complete requests:      10
-        Failed requests:        0
-        Total transferred:      4050 bytes
-        Total body sent:        1700
-        HTML transferred:       2460 bytes
-        Requests per second:    137.58 [#/sec] (mean)
-        Time per request:       72.687 [ms] (mean)
-        Time per request:       7.269 [ms] (mean, across all concurrent requests)
-        Transfer rate:          54.41 [Kbytes/sec] received
-                                22.84 kb/s sent
-                                77.25 kb/s total
-
-        Connection Times (ms)
-                      min  mean[+/-sd] median   max
-        Connect:        1    1   0.1      1       2
-        Processing:     3   14  20.3      8      71
-        Waiting:        3   14  20.3      8      71
-        Total:          5   15  20.3      9      73
-
-        Percentage of the requests served within a certain time (ms)
-          50%      9
-          66%     10
-          75%     10
-          80%     10
-          90%     73
-          95%     73
-          98%     73
-          99%     73
-         100%     73 (longest request)
-
-
-
-#. Since we are going to run our benchmarks with high concurrency levels, we need to increment the maximum number of open files.  Run the following command (Note: this is not a persistent change, and you will need to run this command again if you log out or reboot the ``tester-0``)
-
-   .. parsed-literal::
-        >> ulimit -n 10000
-
-#. In the ``ab`` benchmark that we run before, the ``-c`` option is used to simulate a given number of simultaneous connections (10 in that case),  the ``-n`` option is used to determine the number of requests to issue(10 requests in the example). Experiment running ``ab`` with different concurrency levels, in batches of 10000 requests.  Fill out the following table:
-
-.. cssclass:: minitable
-
-=============   ======================  ===============     =============
-Concurrency     Mean Request Time (ms)  Longest request     98 percentile
-=============   ======================  ===============     =============
-10					
-20
-50
-100
-200
-500
-700
-1000
-1200
-1500
-2000
-2500
-3000
-=============   ======================  ===============     =============
-
-.. note::
-
-    Apparently ``ab`` has a bug where if one of the requests times out, it exits with the message ``apr_pollset_poll: The timeout specified has expired (70007)``, instead of recording it as a failed request. If you run into this problem try to run the test again. You will probably have this problem once you go over 1000 concurrent users in a single node.
-
-.. admonition:: Report
-    :class: worksheet
-
-    If we want to have a Service Level Agreement in which we tolerate a maximum response time up to 1.5 seconds, with an average request time less than 200 ms, with a response 98% of the time within 300 ms, what is the maximum number of concurrent users that we can support with only one server. Use one or more charts based on the data collected on the previous table to substantiate your answer.
-
-Adding a Load Balancer
-======================
-
-In this section we are going to scale the restserver horizontally with the help of a load balancer.
-
-
-#. Create another instance based on the "lab02-restserver" image. Name this instance "restserver-1", and make sure that you enable HTTP/HTTPS traffic.
-
-#. Start the restserver in "restserver-1" (in the background, as we did before) and make sure that it works (use the Internal IP Address for your test). At this point we have two instances running with the restserver. However, we need to add a load balancer in front of them in order to distribute the request load between the instances.
-
-#. We will use **nginx** as our load balancer. Create another microinstance (with the same specs as restserver).  Name this instance "loadbalancer-0".
-
-#. SSH into "loadbalancer-0" and execute the following commands to install **nginx** and its software dependencies:
+#. We are going to run Kafka and Zookeeper in docker containers.  Create a directory called ``kafka`` in your home(``~``) directory, and change into it. Create a ``Dockerfile`` with the following content:
 
     .. parsed-literal::
-        >> sudo apt-get update
-        >> sudo apt-get install -y nginx
+        FROM openjdk:8-jre
 
-#. **nginx** accepts a maximum of 768 worker connections by default.  We need to increase that number for our testing. Make a backup of the ``/etc/nginx/nginx.conf`` file and modify the ``worker_connections`` parameter under the ``events`` directive to allow 4096 worker connections.
+        ENV KAFKA_VERSION 1.0.0
+        ENV KAFKA_SCALA_VERSION 2.11
+        ENV KAFKA_ARCH "kafka_$KAFKA_SCALA_VERSION-$KAFKA_VERSION.tgz"
+        ENV KAFKA_HOME /opt/kafka
 
-#. We also need to update the maximum number of open files.  We want to apply this to the nginx service only. Run the following commands:
+        WORKDIR /opt
 
-    .. parsed-literal::
-        >> sudo mkdir /etc/systemd/system/nginx.service.d
-        >> sudo bash -c 'echo -e "[Service]\nLimitNOFILE=65536" > /etc/systemd/system/nginx.service.d/local.conf'
-        >> sudo systemctl daemon-reload
-        >> sudo systemctl restart nginx
+        RUN apt-get update
+        RUN apt-get install -y jq
+        RUN wget -O - $(wget -qO- https://www.apache.org/dyn/closer.cgi\\?as_json\\=1\\&path\\=/kafka/$KAFKA_VERSION/$KAFKA_ARCH | jq --raw-output '.preferred')kafka/$KAFKA_VERSION/$KAFKA_ARCH | tar zxf -
+        RUN mv /opt/kafka_$KAFKA_SCALA_VERSION-$KAFKA_VERSION $KAFKA_HOME
+        RUN sed -i 's/zookeeper.connect=localhost:2181/zookeeper.connect=zookeeper:2181/g' /opt/kafka/config/server.properties
+        RUN sed -i 's/broker.id=0/broker.id=-1/g' /opt/kafka/config/server.properties
 
-#. You can verify that the previous setting took effect by looking at the limits for the process id for **nginx** (you can find the value of ``<PID>`` using ``ps | grep nginx``):
+        CMD ["/opt/kafka/bin/kafka-server-start.sh", "/opt/kafka/config/server.properties"]
 
-    .. parsed-literal::
-        >> cat /proc/<PID>/limits
 
-#. We now need to configure **nginx** to serve incoming requests to ``/fibonacci`` and forward them to the **restserver** nodes in a round robin fashion. To do this, we will edit the configuration file located under: ``/etc/nginx/sites-available/default``, but before making any changes to that file we should make a backup
+#. Build the docker image (make sure you are in the ``~/kafka`` directory):
 
-    .. parsed-literal::
-        >> sudo cp /etc/nginx/sites-available/default /etc/nginx/sites-available/default.backup
+	.. parsed-literal::
+		> docker build -t kafka-cs385 .
 
-#. Open this file and notice that it has a json-like format.  To enable load balancing, we need to use the ``upstream`` directive.  Add this to the file
-
-    .. parsed-literal::
-        upstream fibonacci {
-            server <RESTSERVER-0-INTERNAL-IP>;
-            server <RESTSERVER-1-INTERNAL-IP>;
-        } 
-
-#. We also need to modify the ``location`` element from the ``server`` directive to proxy requests to the ``fibonacci`` upstream group that we just added:
+#. Run the ``docker images`` command. Notice how you have entries for the image that was just built and for the base image:
 
     .. parsed-literal::
-        location / {
-            proxy_pass http://fibonacci;
-        }
+        > docker images
+        REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+        kafka-cs385         latest              1f3ed9b84a19        7 seconds ago       569MB
+        openjdk             8u181-jre           66bf39162ea7        2 days ago          443MB
+        hello-world         latest              2cb0d9787c4d        8 weeks ago         1.85kB
 
 
-#. After these changes have been applied, your file should look like the following example (the internal IP address most likely be different, of course)
-
-    .. literalinclude:: default.conf
-
-
-#. Once you have finished editing the **nginx** configuration, we need to reload it.  Run the following command:
+#. Verfiy the image layers by using the ``docker history`` command. The output should return several lines, each one corresponds to a *layer*. You can see that the last layers added correspond to the build steps from the Dockerfile we just built.  Compare the history of ``kafka-cs385`` with the history of ``openjdk:8-jre``.  How many layers on top of ``openjdk:8-jre`` were added by our kafka ``Dockerfile``? Can you find the correspondence between layers and commands in the kafka-cs385  ``Dockerfile``? How much bigger in MB is ``kafka-cs385`` when compared to ``openjdk:8-jre``?
 
     .. parsed-literal::
-        >> sudo service nginx reload
+        > docker history kafka-cs385
 
-#. If you encounter any errors, it is almost certain that there is a problem with your configuration file.  You can get valuable troubleshooting information by running this command:
 
-    .. parsed-literal::
-        >> sudo systemctl status nginx.service
-
-#. Once you have completed the configuration of the load balancer, we can test it by using the following curl command, from any computer. Try it from "tester-0" using both Internal and External IP addresses of "loadbalancer-0".  Try it from the outside work (a.k.a. your workstation) using the External IP Address.
+#. Before proceeding any further, we need to test that our image runs.  To do this, we first need to create a user-defined bridge network and then start a Zookeeper server.  To run zookeeper we are going to use the official `Apache Zookeeper Docker Image <https://hub.docker.com/_/zookeeper/>`_. To run it, use this command:
 
     .. parsed-literal::
-        >> curl -X POST -H 'Content-Type: application/json' http://<LOADBALANCER_IP_ADDRESS>/fibonacci -d '{"fibonacci_number": 20}'
+        > docker network create testnet
+        > docker run -d --name zookeeper --net testnet zookeeper:3.4.11
 
-
-#. Our restserver includes an ``status`` endpoint that lets us see the size of an internal cache that holds previously computed fibonacci numbers, and also the number of requests.  Run the following command several times, and notice if you see different output every time:
+#. Verify that the Zookeeper container is running by using the ``docker ps`` command
 
     .. parsed-literal::
-        >> curl http://<LOADBALANCER_IP_ADDRESS>/status
+        > docker ps
+
+#. Now that Zookeeper is running we can start Kafka:
+
+    .. parsed-literal::
+        > docker run -d --name kafka --net testnet kafka-cs385
+
+#. Verify that both Kafka and Zookeeper are running by executing the ``docker ps`` command:
+
+    .. parsed-literal::
+        > docker ps
+        CONTAINER ID        IMAGE                COMMAND                  CREATED             STATUS              PORTS                          NAMES
+        6a76c10946f9        kafka-cs385          "/opt/kafka/bin/ka..."   7 seconds ago       Up 6 minutes                                       kafka
+        c53269318237        zookeeper:3.4.11     "/docker-entrypoin..."   4 hours ago         Up 4 hours          2181/tcp, 2888/tcp, 3888/tcp   zookeeper
+
+#. To test Kafka, we are going to log into the container. To do this, we will use the ``docker exec`` command in *interactive* mode:
+
+    .. parsed-literal::
+        > docker exec -it kafka bash
+        root\@6a76c10946f9:/opt\#
+
+#. Notice how your shell prompt changed, and it includes the container id as host name. You can now run commands that will be executed inside the container. We are going to do now several basic interactions with Kafka (refer to the `Apache Kafka Quickstart <https://kafka.apache.org/quickstart>`_ First create a topic:
+
+    .. parsed-literal::
+        root\@6a76c10946f9:/opt\# kafka/bin/kafka-topics.sh --create --zookeeper zookeeper:2181 --replication-factor 1 --partitions 1 --topic mytopic
+        Created topic "mytopic".
+
+#. Now we use the **Kafka console producer** to write some messages:
+
+    .. parsed-literal::
+        root\@6a76c10946f9:/opt\# kafka/bin/kafka-console-producer.sh --broker-list localhost:9092 --topic mytopic
+
+#.  Enter several lines of text and press :kbd:`Ctrl+C` to close the console producer. Now let's read those messages using the console consumer:
+
+    .. parsed-literal::
+        root\@6a76c10946f9:/opt\# kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic mytopic --from-beginning
+
+#. Notice how the messages that you created earlier are retrieved by the console consumer. Once all the messages are written to the terminal, press :kbd:`Ctrl+C` to terminate the console consumer.
+
+#. Exit the container (by typing the ``exit`` command as you do with a normal bash session). We now want to terminate the container by using the docker stop command:
+
+    .. parsed-literal::
+        > docker stop kafka
+
+#. If you run the ``docker ps`` command, the container is not shown as running anymore. Nevertheless, the container still exists and it can be restarted.  Compare the output of ``docker ps`` with the same command but using the ``-a`` option which shows all the containers.  If we want to remove a container completely, then we must use the ``docker rm`` command:
+
+    .. parsed-literal::
+        > docker rm kafka
 
 
-.. admonition:: Report
-    :class: worksheet
-    
-    #. Complete a table similar to the table we completed in the previous section, but in this case include data for 2 nodes.
+Part 3: Dockerfile Optimization
+===============================
 
-    #. Repeat the previous step with 3, 4 and 5 nodes. Note that you will need to provision the new restserver VM instances, start the restserver process on them, update the nginx configuration with the internal IP addresses and reload nginx.
+The Dockerfile that we used works, but it generates an image that is rather big in size. We can reduce the size of the image by merging several instructions together. 
 
-    #. Generate a single chart that plots the mean request time vs concurrent users, for the 1,2 3,4 and 5 node configurations.
+#. Edit the docker file to merge all the **RUN** instructions into a single instruction.  How much space do you save by doing this? Build this dockerfile and tag is as ``kafka-cs385:consolidated_run``:
 
-    #. We expect our service to have a maximum number of 2000 concurrent users.  With a Service Level Agreement in which we tolerate a maximum response time up to 1.5 seconds, with an average of less than 300 milliseconds, with requests 98% of the time less than 400 ms, How many nodes do you need to provision? 
+    .. parsed-literal::
+        > docker build -t kafka-cs385:consolidated_run .
 
+
+#. After you successfully build this new image, run it as we did before with the ``kafka-cs385`` image, and make sure that Kafka is working and you can create topics, produce messages and retrieve them.
+
+#. We can also reduce the amount of used space by removing the cache of installation utilities. Add a command to the **RUN** instruction to remove the ``apt`` cache.  Hint: The `Dockerfile best practices <https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practices/#run>`_ reference has very valuable information that can help you. Build this image and tag it as ``kafka-cs385:nocache``
+
+    .. parsed-literal::
+        > docker build -t kafka-cs385:nocache .
+
+#. As we did before, make sure that your image works and you can interact with topics.
+
+#. We can further reduce the size of our Kafka image by using a smaller base image.  The `OpenJDK official docker repository <https://hub.docker.com/_/openjdk/>`_ has many images that can be used. Typically, the *slim* versions are debian based images of much smaller size. Update the Dockerfile to use a *slim* base image. Note that you will need not only to update the base image, but you will probably need to install utilities that are no longer included in the base image and are needed to complete the installation of kafka. Build this image and tag is as ``kafka-cs385:slim``
+
+    .. parsed-literal::
+        > docker build -t kafka-cs385:slim .
+
+#. As before, make sure that your image works and you can interact with topics.
+
+#. After performing the previous optimizations, you can compare the sizes of the resulting images (your image sizes might differ a little bit, but should be close to these values)
+
+    .. parsed-literal::
+        > docker images
+        REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+        kafka-cs385         slim                0c76aa21f306        5 minutes ago       263 MB
+        kafka-cs385         nocache             eda22e7be277        12 minutes ago      594 MB
+        kafka-cs385         consolidated_run    e9b0d0b69019        23 minutes ago      610 MB
+        kafka-cs385         latest              0d5561696173        30 minutes ago      664 MB
+        openjdk             8-jre               97c270c3cab0        2 weeks ago         538 MB
+        openjdk             8-jre-slim          837969d6f968        2 weeks ago         205 MB
+
+#. You can go even further by instead of using an image based on debian, you can use an *alpine* base image to reduce the size of the image even more.  You will need to do some experimentation to figure out which utilities need to be installed to be able to install kafka, and also to run it.
+
+    .. parsed-literal::
+        > docker images
+        REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+        kafka-cs385         alpine              44ea7ee63d23        16 hours ago        144 MB
+        kafka-cs385         slim                0c76aa21f306        21 hours ago        263 MB
+        kafka-cs385         nocache             eda22e7be277        21 hours ago        594 MB
+        kafka-cs385         consolidated_run    e9b0d0b69019        22 hours ago        610 MB
+        kafka-cs385         latest              0d5561696173        22 hours ago        664 MB
+        zookeeper           3.4.11              09fe1e7c8f0f        11 days ago         146 MB
+        openjdk             8-jre               97c270c3cab0        2 weeks ago         538 MB
+        openjdk             8-jre-alpine        b36ec9de53a8        2 weeks ago         81.4 MB
+        openjdk             8-jre-slim          837969d6f968        2 weeks ago         205 MB
+
+
+
+Part 4: Building a Python App
+=============================
+
+In this section we are going to learn how to interact with Kafka programatically using the `pykafka <https://github.com/Parsely/pykafka>`_ python library.
+We are going to create a simple app that exposes a REST API that receives messages and writes them to Kafka topics.  We are then going to create another app that consumes those messages.
+
+
+#. SSH into **docker-0**. Create a new directory called ``kafkaclient`` and change into it.
+
+#. Create a file called ``app.py`` with the following content:
+
+    .. parsed-literal::
+        from flask import Flask, request, Response
+        from pykafka import KafkaClient
+
+
+        app = Flask(__name__)
+        client = KafkaClient(zookeeper_hosts="zookeeper")
+
+        # create topics
+
+        topics = ['deliveries', 'updates']
+
+        for item in topics:
+            client.topics[item]
+
+
+        @app.route("/kafka", methods=['POST'])
+        def write_message():
+            payload = request.get_json()
+            req_topic = payload['topic'].encode('utf-8')
+            req_message = payload['message'].encode('utf-8')
+            if req_topic in client.topics:
+                topic = client.topics[req_topic]
+                with topic.get_sync_producer(max_queued_messages=0, linger_ms=0) as producer:
+                    producer.produce(req_message)
+                return Response(response='{"msg": "Success"}', status=200, mimetype="application/json")
+            else:
+                return Response(response='{"msg": "Invalid Topic"}', status=400, mimetype="application/json")
+
+
+#. Create a file called ``requirements.txt`` with the following content:
+
+    .. parsed-literal::
+        Flask==0.12.2
+        pykafka==2.6.0
+
+
+#. Create a ``Dockerfile`` with the following contents:
+
+    .. parsed-literal::
+        FROM python:2.7-alpine3.6
+
+        COPY * /opt/kafkaclient/
+
+        WORKDIR /opt/kafkaclient
+
+        RUN apk add --no-cache g++ \\
+            && pip install -r requirements.txt
+
+        ENV FLASK_APP app.py
+
+        CMD ["flask", "run", "--host=0.0.0.0", "--port=5000"]
+
+
+#. Once all these files have been created, the directory tree of ``kafkaclient`` should look like this:
+
+	.. parsed-literal::
+
+		kafkaclient
+		   ├── app.py
+		   ├── Dockerfile
+		   └── requirements.txt
+
+#. Build the image:
+
+    .. parsed-literal::
+       >  docker build -t kafkaclient .
+
+#. Start Zookeeper and Kafka using the same instructions from the previous section (Use the most optimized Kafka image available)
+
+#. Start a kafkaclient container that *exposes* the container's port 5000 in the host's port 80:
+
+    .. parsed-literal::
+        > docker run --rm -d -p 80:5000 --name kafkaclient --net testnet kafkaclient
+
+#. The application has two hard-coded topics ("deliveries" and "updates"), and only writes messages to those topics. To write a message, we will use the ``POST /kafka`` REST API endpoint. On another terminal, in your workstation (i.e. without logging into ``docker-0``) execute the following command (replace ``DOCKER-01_EXTERNAL_IP_ADDRESS`` with the corresponding value)
+
+    .. parsed-literal::
+        > curl -X POST -H 'Content-type: application/json' http://<DOCKER-01_EXTERNAL_IP_ADDRESS>/kafka -d '{"topic": "deliveries", "message": "Chuck Norris just delivered you a roundhouse kick."}'
+
+#. Try writing different messages and writing to topics that are not ``deliveries`` or ``updates``.
+
+#. Back into a session where you are logged into ``docker-01``, log into the ``kafka`` container and start a console consumer for the "deliveries" topic (we used the ``kafka-console-consumer`` back in the **Building a Dockerfile: Apache Kafka** section). Write some messages to the ``deliveries`` topic using the ``POST /kafka`` REST API and notice the effect on the console consumer.
+
+
+Part 5: Deploy the Minibank app
+===============================
+
+In this section you are going to work on your own. The objective is to deploy the minibank application in docker. You need to follow these guidelines:
+
+- The golang application and the mysql service need to run in two different containers.  You will need to make (a very simple) modification to the minibank application that allows it to handle the fact that the mysql daemon is not running under the same host.
+- The level of optimization of the resulting images will be taken into consideration when your work is evaluated.
+- For the minibank applicaton, use an alpine linux base image. For the mysql image, use an ubuntu or debian image. If you prefer to use MariaDB instead of mysql, that is perfectly fine.
+- The images should not require mounting any directories to run.
+- The minibank application should be able to handle the fact that the mysql service might not be running when it is started. You will need to modify the minibank sourcecode to return a 503 response in such case.
+- You will need to provide a Makefile that will have the following targets
+   - A target called ``minibank`` that will build the minibank docker image. To compile minibank, you need to use the procedure explained in https://github.com/docker-library/docs/tree/master/golang#compile-your-app-inside-the-docker-container. (See note below about the system where this will be tested)
+   - A target called ``mysql`` that will build the mysql image
+   - A target called ``run-images`` that will start the minibank and the mysql containers. 
+
+
+What to turn in:
+----------------
+
+A link to a public Github repository that will contain:
+
+#. The updated minibank source code
+#. The Dockerfile for the minibank application
+#. The Dockerfile for mysql
+#. The makefile
+#. (if needed) A README file with any instructions or additional information that you deem appropriate.
+
+Your submission will be tested in an **Ubuntu 18.04 System** that **will not have the golang** binaries installed. If your make targets require to have a golang installation, they will not work. The only software that you are guaranteed to be installed on that system are docker, make, git and curl/wget. If there is another tool that is required to build/run your submission, make sure you ask or at least document it.
+
+The minibank source code for this assignment is available at https://github.com/jcabmora/minibank/tree/week1/week1
+
+Additional Resources
+====================
+https://docs.docker.com/v17.09/engine/docker-overview
