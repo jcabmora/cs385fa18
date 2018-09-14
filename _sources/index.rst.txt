@@ -13,6 +13,7 @@ Welcome to CS385 Cloud Systems Architecture!
    syllabus
    labs/lab01/lab01
    labs/lab02/lab02
+   labs/lab03/lab03
 
 Indices and tables
 ==================

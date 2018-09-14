@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Lab No. 3 Container Orchestration &#8212; CS385 Cloud Systems Architecture  documentation</title>
+    <link rel="stylesheet" href="../../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="prev" title="Lab No. 2: Containers" href="../lab02/lab02.html" />
+<link href="https://fonts.googleapis.com/css?family=Lusitana|Inconsolata|Roboto" rel="stylesheet">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../index.html">
+          CS385 Cloud Systems Architecture</a>
+        <span class="navbar-text navbar-version pull-left"><b></b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../syllabus.html">CS385 Cloud Systems Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab01/lab01.html">Lab No. 1: Deploying an Application to Google Cloud</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab02/lab02.html">Lab No. 2: Containers</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Lab No. 3 Container Orchestration</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">Lab No. 3 Container Orchestration</a><ul>
+<li><a class="reference internal" href="#part-1-set-up-a-kubernetes-cluster">Part 1: Set Up a Kubernetes Cluster</a></li>
+<li><a class="reference internal" href="#part-2-using-kubectl">Part 2: Using <code class="docutils literal"><span class="pre">kubectl</span></code></a></li>
+<li><a class="reference internal" href="#part-3-deploy-a-custom-image-to-kubernetes">Part 3: Deploy a custom image to Kubernetes</a></li>
+<li><a class="reference internal" href="#part-4-managing-pods-deployments-services-and-replicasets">Part 4: Managing Pods, Deployments, Services and ReplicaSets</a><ul>
+<li><a class="reference internal" href="#what-to-turn-in">What to turn in:</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="../lab02/lab02.html" title="Previous Chapter: Lab No. 2: Containers"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Lab No. 2: Containers</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../../_sources/labs/lab03/lab03.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="section" id="lab-no-3-container-orchestration">
+<h1>Lab No. 3 Container Orchestration<a class="headerlink" href="#lab-no-3-container-orchestration" title="Permalink to this headline">¶</a></h1>
+<p>The goal of this lab is to provide a <em>gentle</em> introduction to Kubernetes.
+In this lab you will learn to:</p>
+<ol class="arabic simple">
+<li>provision a kubernetes cluster in google cloud container engine,</li>
+<li>use kubectl to interact with basic kubernetes resources (pods, deployments, replicasets and services)</li>
+</ol>
+<div class="section" id="part-1-set-up-a-kubernetes-cluster">
+<h2>Part 1: Set Up a Kubernetes Cluster<a class="headerlink" href="#part-1-set-up-a-kubernetes-cluster" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic">
+<li><p class="first">Log into the Google Cloud Platform, go to <strong>APIs &amp; Services</strong> and make sure that <strong>Google Kubernetes Engine API</strong> is enabled.</p>
+</li>
+<li><p class="first">Create a virtual machine named <strong>lab03</strong> based on the <code class="docutils literal"><span class="pre">ubuntu-1804-bionic-v20180823</span></code> image.
+We are going to use this machine to provision a Kubernetes cluster and interact with it.
+Make sure you enable an external IP address in order to be able to SSH into this machine from anywhere.
+A disk of 10GB will suffice.
+You can assign as little memory as allowed since we are just going to execute commands from this machine, we are not going to run any services on it.</p>
+</li>
+<li><p class="first">SSH into <strong>lab03</strong></p>
+</li>
+<li><p class="first">Install docker and add the current user to the <code class="docutils literal"><span class="pre">docker</span></code> user group using the same procedure that was used in Part 1 of Lab No. 2. Do not forget to logout and log back in, in order for group membership changes to be reflected.</p>
+</li>
+<li><p class="first">Install the <strong>kubectl</strong> utility</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">sudo</span> <span class="n">snap</span> <span class="n">install</span> <span class="n">kubectl</span> <span class="o">--</span><span class="n">clasic</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Run the following command to test the <code class="docutils literal"><span class="pre">kubectl</span></code> installation.</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">kubectl</span> <span class="n">version</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>The error message that reports that the command was not able to connect to <code class="docutils literal"><span class="pre">localhost:8080</span></code> is due to the fact that we have not configured a Kubernetes cluster.</p>
+</li>
+<li><p class="first">We are going to create a Kubernetes cluster using the Google Container Engine. The following command will take care of that (be patient, it takes a few minutes to complete).</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">gcloud</span> <span class="n">container</span> <span class="n">clusters</span> <span class="n">create</span> <span class="n">lab03cluster</span> <span class="o">--</span><span class="n">zone</span> <span class="n">us</span><span class="o">-</span><span class="n">west1</span><span class="o">-</span><span class="n">c</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Use the command <code class="docutils literal"><span class="pre">gcloud</span> <span class="pre">container</span> <span class="pre">clusters</span> <span class="pre">list</span></code> to verify the cluster configuration.</p>
+</li>
+<li><p class="first">Use the <code class="docutils literal"><span class="pre">gcloud</span> <span class="pre">compute</span> <span class="pre">instances</span> <span class="pre">list</span></code> and notice how the previous command created three new virtual machines.</p>
+</li>
+<li><p class="first">Run the <code class="docutils literal"><span class="pre">kubectl</span> <span class="pre">version</span></code> command again. Notice how the <code class="docutils literal"><span class="pre">kubectl</span></code> tool was automatically configured to connect to the Kubernetes cluster that was just created.</p>
+</li>
+</ol>
+</div>
+<div class="section" id="part-2-using-kubectl">
+<h2>Part 2: Using <code class="docutils literal"><span class="pre">kubectl</span></code><a class="headerlink" href="#part-2-using-kubectl" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic">
+<li><p class="first">Inspect the options available for the <code class="docutils literal"><span class="pre">kubectl</span></code> command.</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">kubectl</span> <span class="o">|</span> <span class="n">less</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">One of most basic tasks is to check the nodes of a cluster:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">kubectl</span> <span class="n">get</span> <span class="n">nodes</span>
+<span class="n">NAME</span>                                          <span class="n">STATUS</span>    <span class="n">ROLES</span>     <span class="n">AGE</span>       <span class="n">VERSION</span>
+<span class="n">gke</span><span class="o">-</span><span class="n">lab03cluster</span><span class="o">-</span><span class="n">default</span><span class="o">-</span><span class="n">pool</span><span class="o">-</span><span class="mi">973</span><span class="n">a4e96</span><span class="o">-</span><span class="mi">1</span><span class="n">k2t</span>   <span class="n">Ready</span>     <span class="o">&lt;</span><span class="n">none</span><span class="o">&gt;</span>    <span class="mi">2</span><span class="n">m</span>        <span class="n">v1</span><span class="o">.</span><span class="mf">9.7</span><span class="o">-</span><span class="n">gke</span><span class="o">.</span><span class="mi">6</span>
+<span class="n">gke</span><span class="o">-</span><span class="n">lab03cluster</span><span class="o">-</span><span class="n">default</span><span class="o">-</span><span class="n">pool</span><span class="o">-</span><span class="mi">973</span><span class="n">a4e96</span><span class="o">-</span><span class="n">qvvl</span>   <span class="n">Ready</span>     <span class="o">&lt;</span><span class="n">none</span><span class="o">&gt;</span>    <span class="mi">2</span><span class="n">m</span>        <span class="n">v1</span><span class="o">.</span><span class="mf">9.7</span><span class="o">-</span><span class="n">gke</span><span class="o">.</span><span class="mi">6</span>
+<span class="n">gke</span><span class="o">-</span><span class="n">lab03cluster</span><span class="o">-</span><span class="n">default</span><span class="o">-</span><span class="n">pool</span><span class="o">-</span><span class="mi">973</span><span class="n">a4e96</span><span class="o">-</span><span class="n">rlv0</span>   <span class="n">Ready</span>     <span class="o">&lt;</span><span class="n">none</span><span class="o">&gt;</span>    <span class="mi">2</span><span class="n">m</span>        <span class="n">v1</span><span class="o">.</span><span class="mf">9.7</span><span class="o">-</span><span class="n">gke</span><span class="o">.</span><span class="mi">6</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first"><strong>Pods</strong> are “the smallest deployable units of computing that can be created and managed in Kubernetes” (take a few minutes to review Pods documentation located at <a class="reference external" href="https://kubernetes.io/docs/concepts/workloads/pods/pod/">https://kubernetes.io/docs/concepts/workloads/pods/pod/</a>).
+<strong>Pods</strong> are managed with <strong>Deployments</strong>  (<a class="reference external" href="https://kubernetes.io/docs/concepts/workloads/controllers/deployment/">https://kubernetes.io/docs/concepts/workloads/controllers/deployment/</a>)
+Create a Deployment of the <em>nginx</em> web server:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">kubectl</span> <span class="n">run</span> <span class="n">foobar</span> <span class="o">--</span><span class="n">image</span><span class="o">=</span><span class="n">nginx</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">In a Kubernetes cluster, containers run as part of a Pod.
+In the previous command, Kubernetes created a deployment that executes a single container of the nginx webserver.
+Verify that a deployment was created:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">kubectl</span> <span class="n">get</span> <span class="n">deployments</span>
+<span class="n">NAME</span>      <span class="n">DESIRED</span>   <span class="n">CURRENT</span>   <span class="n">UP</span><span class="o">-</span><span class="n">TO</span><span class="o">-</span><span class="n">DATE</span>   <span class="n">AVAILABLE</span>   <span class="n">AGE</span>
+<span class="n">foobar</span>    <span class="mi">1</span>         <span class="mi">1</span>         <span class="mi">1</span>            <span class="mi">1</span>           <span class="mi">2</span><span class="n">m</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Verify that a corresponding pod was created:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">kubectl</span> <span class="n">get</span> <span class="n">pods</span>
+<span class="n">NAME</span>                    <span class="n">READY</span>     <span class="n">STATUS</span>              <span class="n">RESTARTS</span>   <span class="n">AGE</span>
+<span class="n">foobar</span><span class="o">-</span><span class="n">f94c78b8b</span><span class="o">-</span><span class="n">bjt74</span>  <span class="mi">1</span><span class="o">/</span><span class="mi">0</span>       <span class="n">Running</span>             <span class="mi">0</span>          <span class="mi">2</span><span class="n">m</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">A very useful feature of <code class="docutils literal"><span class="pre">kubectl</span></code> is its option to produce output in json format.  Explore running the previous <code class="docutils literal"><span class="pre">kubectl</span></code> with the <code class="docutils literal"><span class="pre">-o</span> <span class="pre">json</span></code> argument. This is particularly useful when creating shell scripts that need to parse the output of <code class="docutils literal"><span class="pre">kubectl</span></code>.</p>
+</li>
+<li><p class="first">Suppose you need to know on which host the pod that we created is running.  Inspect the output of <code class="docutils literal"><span class="pre">kubectl</span> <span class="pre">-h</span></code> to find out which command will let you know in which host a pod is running.</p>
+</li>
+<li><p class="first">Delete the deployment:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">kubectl</span> <span class="n">delete</span> <span class="n">deployment</span> <span class="n">foobar</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Verify that the foobar pods have been removed.</p>
+</li>
+</ol>
+</div>
+<div class="section" id="part-3-deploy-a-custom-image-to-kubernetes">
+<h2>Part 3: Deploy a custom image to Kubernetes<a class="headerlink" href="#part-3-deploy-a-custom-image-to-kubernetes" title="Permalink to this headline">¶</a></h2>
+<p>In Part 1 we deployed an nginx webserver in a Pod.
+However, that was not particularly useful because the service was never <em>exposed</em> to the outside world.
+In this section we are going to create an application that will return the name of the container where it is running.
+In Part 4 we will scale the application and we are going to expose it so it can be called from the web.</p>
+<ol class="arabic">
+<li><p class="first"><strong>On your own:</strong> Create a Docker image that executes a golang application that runs an http server that listens on port 80.
+When that service is called, it returns the name of the host where is it running (this value is returned by the <code class="docutils literal"><span class="pre">os.Hostname()</span></code> method).
+For example, suppose the application is running in a container whose name is <code class="docutils literal"><span class="pre">5f17eddbe42d</span></code>, and that container has an IP Address of <code class="docutils literal"><span class="pre">172.16.1.1</span></code>.
+When the endpoint is called using a <code class="docutils literal"><span class="pre">curl</span></code> command, it should return the following:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">curl</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="mf">172.16</span><span class="o">.</span><span class="mf">1.1</span>
+<span class="mi">5</span><span class="n">f17eddbe42d</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Make sure you test your image locally.</p>
+</li>
+<li><p class="first">Tag the image as <code class="docutils literal"><span class="pre">gcr.io/&lt;YOUR_GCP_PROJECT_ID&gt;/echohost:latest</span></code> (replace your project id accordingly). In case you need help with the <code class="docutils literal"><span class="pre">docker</span> <span class="pre">tag</span></code> command, the documentation is available at <a class="reference external" href="https://docs.docker.com/engine/reference/commandline/tag/">https://docs.docker.com/engine/reference/commandline/tag/</a>.</p>
+</li>
+<li><p class="first">Run the <code class="docutils literal"><span class="pre">gcloud</span> <span class="pre">auth</span> <span class="pre">configure-docker</span></code> to setup your credentials for the GCP Container Registry.</p>
+</li>
+<li><p class="first">Push the image to the Google Cloud Container Registry.
+Note that in the next command we will use a gcloud utility to push to the registry instead of the normal <code class="docutils literal"><span class="pre">docker</span> <span class="pre">push</span></code> command.
+The reason is because the <code class="docutils literal"><span class="pre">gcr.io</span></code> requires some additional steps to authenticate.</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">gcloud</span> <span class="n">docker</span> <span class="o">--</span> <span class="n">push</span> <span class="n">gcr</span><span class="o">.</span><span class="n">io</span><span class="o">/&lt;</span><span class="n">YOUR_GCP_PROJECT_ID</span><span class="o">&gt;/</span><span class="n">echohost</span><span class="p">:</span><span class="n">latest</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Verify that the image was pushed to the container registry in the GCP web console (Left navigation menu, under <strong>Tools</strong> &gt; <strong>Container Registry</strong>)</p>
+</li>
+<li><p class="first">Deploy the application to your kubernetes cluster:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">kubectl</span> <span class="n">run</span> <span class="n">echohost</span> <span class="o">--</span><span class="n">image</span><span class="o">=</span><span class="n">gcr</span><span class="o">.</span><span class="n">io</span><span class="o">/&lt;</span><span class="n">YOUR_GCP_PROJECT_ID</span><span class="o">&gt;/</span><span class="n">echohost</span><span class="p">:</span><span class="n">latest</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Run <code class="docutils literal"><span class="pre">kubectl</span> <span class="pre">get</span> <span class="pre">pods</span></code> to verify that the pod is running</p>
+</li>
+</ol>
+</div>
+<div class="section" id="part-4-managing-pods-deployments-services-and-replicasets">
+<h2>Part 4: Managing Pods, Deployments, Services and ReplicaSets<a class="headerlink" href="#part-4-managing-pods-deployments-services-and-replicasets" title="Permalink to this headline">¶</a></h2>
+<p>At this point we have a custom application deployed to a kubernetes cluster. In this Part of the lab you will use <code class="docutils literal"><span class="pre">kubectl</span></code> commands to enable the app to do useful work.</p>
+<ol class="arabic">
+<li><p class="first">First, we are going to make our service accessible to the outside world.  The following command will create a <strong>Service</strong>  (<a class="reference external" href="https://kubernetes.io/docs/concepts/services-networking/">https://kubernetes.io/docs/concepts/services-networking/</a>):</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">kubectl</span> <span class="n">expose</span> <span class="n">deployment</span> <span class="n">echohost</span> <span class="o">--</span><span class="n">port</span> <span class="mi">80</span> <span class="o">--</span><span class="nb">type</span> <span class="n">LoadBalancer</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>This command will create a service with a load balancer with an external IP Address associated to it.  The service takes care of forwarding incoming requests to the pods in the deployment.</p>
+</li>
+<li><p class="first">Confirm that the service is running. Wait until an External IP address is assigned.</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">kubectl</span> <span class="n">get</span>  <span class="n">services</span>
+<span class="n">NAME</span>         <span class="n">TYPE</span>           <span class="n">CLUSTER</span><span class="o">-</span><span class="n">IP</span>      <span class="n">EXTERNAL</span><span class="o">-</span><span class="n">IP</span>     <span class="n">PORT</span><span class="p">(</span><span class="n">S</span><span class="p">)</span>        <span class="n">AGE</span>
+<span class="n">echohost</span>     <span class="n">LoadBalancer</span>   <span class="mf">10.59</span><span class="o">.</span><span class="mf">251.135</span>   <span class="mf">35.185</span><span class="o">.</span><span class="mf">250.86</span>   <span class="mi">80</span><span class="p">:</span><span class="mi">32441</span><span class="o">/</span><span class="n">TCP</span>   <span class="mi">2</span><span class="n">m</span>
+<span class="n">kubernetes</span>   <span class="n">ClusterIP</span>      <span class="mf">10.59</span><span class="o">.</span><span class="mf">240.1</span>     <span class="o">&lt;</span><span class="n">none</span><span class="o">&gt;</span>          <span class="mi">443</span><span class="o">/</span><span class="n">TCP</span>        <span class="mi">18</span><span class="n">h</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Once an External IP Address has been assigned, open another terminal (don’t log into <strong>lab03</strong>) and test your service with <code class="docutils literal"><span class="pre">curl</span></code> (Use your own IP Address, and of course, the return name in your case will be different).</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">curl</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="mf">35.185</span><span class="o">.</span><span class="mf">250.86</span>
+<span class="n">echohost</span><span class="o">-</span><span class="n">b88c69458</span><span class="o">-</span><span class="n">pxzcx</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>Run the previous command several times. The output should not change because the deployment that we created has only one Pod.
+Compare the output of the service with the output of the <code class="docutils literal"><span class="pre">kubectl</span> <span class="pre">get</span> <span class="pre">pods</span></code> command.</p>
+</li>
+<li><p class="first">Scale the service by creating a <strong>ReplicaSet</strong> (<a class="reference external" href="https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/">https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/</a>)</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">kubectl</span> <span class="n">scale</span> <span class="n">deployment</span> <span class="n">echohost</span> <span class="o">--</span><span class="n">replicas</span> <span class="mi">3</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Verify that a replicaset was created:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">kubectl</span> <span class="n">get</span> <span class="n">replicaset</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Verify the effect of creating a replicaset in the pods that are running.
+Also, what is the effect of scaling the service in the output of your service (e.i. when you <code class="docutils literal"><span class="pre">curl</span></code> your service’s External IP Address)?
+Explain why you observe this behavior.</p>
+</li>
+</ol>
+<div class="section" id="what-to-turn-in">
+<h3>What to turn in:<a class="headerlink" href="#what-to-turn-in" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li>A link to a github repository where you provide all sources required for building the image for Part 3.
+You shoud include at a minimum one golang file with the application source code, the Dockerfile required to build the image, and either a Makefile or a script that performs the compilation of the golang source.
+<strong>Do not include compiled binaries!</strong>
+As in Lab 2, assume the Docker image needs to be built on a machine that does not have the Golang distribution, the only software that is guaranteed to be installed on that system are docker, make, git and curl/wget.
+If there is another tool that you require to build your submission, make sure that you ask your instructor first and document it in the repository.</li>
+<li>Answer the questions of the last item of Part 4.</li>
+</ol>
+<p>Once you are done with the lab, remove the cluster with this command:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">gcloud</span> <span class="n">container</span> <span class="n">clusters</span> <span class="n">delete</span> <span class="n">lab03cluster</span> <span class="o">--</span><span class="n">zone</span> <span class="n">us</span><span class="o">-</span><span class="n">west1</span><span class="o">-</span><span class="n">c</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+</div>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

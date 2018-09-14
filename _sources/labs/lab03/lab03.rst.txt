@@ -1,204 +1,201 @@
-Lab No. 03: Automating Deployment with REST APIs
-================================================
+*********************************
+Lab No. 3 Container Orchestration
+*********************************
 
+The goal of this lab is to provide a *gentle* introduction to Kubernetes.
+In this lab you will learn to:
 
-In Lab 02 we learned how to run and scale a very simple REST API. It is hard to imagine that a company could function if they had to manually provision (or decommission) every instance using the same method.  Companies rely heavily on automation to provision instances very quickly, with the correct software, with minimal human intervention.
+1) provision a kubernetes cluster in google cloud container engine,
+2) use kubectl to interact with basic kubernetes resources (pods, deployments, replicasets and services)
 
-In this part of the lab we are going to learn how to do this with the Google Cloud API.  Most other Cloud Platform providers such as Amazon, Heroku and Digital Ocean have similar offerings.
+Part 1: Set Up a Kubernetes Cluster
+===================================
 
+#. Log into the Google Cloud Platform, go to **APIs & Services** and make sure that **Google Kubernetes Engine API** is enabled.
 
-Create a Controller Host
-------------------------
+#. Create a virtual machine named **lab03** based on the ``ubuntu-1804-bionic-v20180823`` image. 
+   We are going to use this machine to provision a Kubernetes cluster and interact with it.
+   Make sure you enable an external IP address in order to be able to SSH into this machine from anywhere.
+   A disk of 10GB will suffice.
+   You can assign as little memory as allowed since we are just going to execute commands from this machine, we are not going to run any services on it.
 
-#. Find out your Google Cloud project Id. Click **Home** and you will be presented with a dashboard that will contain the project info.  
+#. SSH into **lab03**
 
-#. We are going to drive all tasks from a host in Google Cloud.  Create a new **Ubuntu 16.04 LTS** micro instance (You do not need to enable HTTP or HTTPS traffic for this instance).  Name this instance **lab03-controller**.  In access scopes, make sure you selece **Allow ful access to all Cloud APIs**
+#. Install docker and add the current user to the ``docker`` user group using the same procedure that was used in Part 1 of Lab No. 2. Do not forget to logout and log back in, in order for group membership changes to be reflected.
 
-    .. image:: lab03-controller.png
-
-
-#. SSH into **lab03-controller** and run the following commands to install pip (a python package manager) and install the google cloud python library
-
-    .. parsed-literal::
-        >> sudo apt-get install -y python-pip
-        >> sudo pip install --upgrade google-cloud google-api-python-client google-auth-httplib2
-        
-#. Create a directory to hold the code that you will write for this lab:
-
-    .. parsed-literal::
-        >> mkdir lab03
-        >> cd lab03
-
-
-Enable credentials
-------------------
-
-
-#. In the Google Cloud Platform web UI, from the left drop down menu select **APIs and Services >> Credentials**. Click on **Create Credentials** and select **Service Account Key**:
-
-#. On the **Create Service account key** prompt, select your default Service account, and select a key of type **JSON**, and click **Create**.  This will download a API key file (with a ``.json`` extension)to your workstation. **SAVE THIS FILE ON A SAFE PLACE THAT IS ONLY ACCESSIBLE TO YOU**.
-
-#. Copy that API file to the ``lab03`` directory as ``apikey.json`` in **lab03-controller**.
-
-#. We need to configure in **lab03-controller**  an environment variable named ``GOOGLE_APPLICATION_CREDENTIALS`` with a value equal to the location of the key file. For example, the folowing commands ads the file ``~/lab03/apikey.json`` to your ``.bash_profile``
+#. Install the **kubectl** utility
 
     .. parsed-literal::
-        >> echo "export GOOGLE_APPLICATION_CREDENTIALS=~/apikey.json" > ~/.bash_profile
+        > sudo snap install kubectl --clasic
 
-#. Logout and log back in and verify that the ``GOOGLE_APPLICATION_CREDENTIALS`` is part of your environment.
-
-
-
-
-Use the Google Cloud Compute Python API
----------------------------------------
-
-
-#. Start an interactive Python session and create a variable to hold your project id:
-
+#. Run the following command to test the ``kubectl`` installation.
 
     .. parsed-literal::
-        >> python
-        Python 2.7.12 (default, Nov 19 2016, 06:48:10)
-        [GCC 5.4.0 20160609] on linux2
-        Type "help", "copyright", "credits" or "license" for more information.
-        >>> project_id = 'cs385-177320'
+        > kubectl version
 
-#. In order to use the ``compute`` API, we need first to create an instance of the ``compute`` resource:
+   The error message that reports that the command was not able to connect to ``localhost:8080`` is due to the fact that we have not configured a Kubernetes cluster.
+
+#. We are going to create a Kubernetes cluster using the Google Container Engine. The following command will take care of that (be patient, it takes a few minutes to complete).
 
     .. parsed-literal::
-        >>> import googleapiclient.discovery
-        >>> compute = googleapiclient.discovery.build('compute', 'v1')
+        > gcloud container clusters create lab03cluster --zone us-west1-c
+
+#. Use the command ``gcloud container clusters list`` to verify the cluster configuration.
+
+#. Use the ``gcloud compute instances list`` and notice how the previous command created three new virtual machines.
+
+#. Run the ``kubectl version`` command again. Notice how the ``kubectl`` tool was automatically configured to connect to the Kubernetes cluster that was just created.
 
 
-#. Let's start by looking at instance information. The ``instances`` API is documented at https://developers.google.com/resources/api-libraries/documentation/compute/v1/python/latest/compute_v1.instances.html.  We can do many operations with instances, for example we can obtain a list of instances in the ``us-west-c`` zone by executing this command (you might want to use a different zone, depending where your VMs reside):
+Part 2: Using ``kubectl``
+=========================
+
+#. Inspect the options available for the ``kubectl`` command.
 
     .. parsed-literal::
-        >>> instances = compute.instances().list(project=project_id, zone='us-west1-c').execute() 
-        >>> [instance['name'] for instance in instances['items']]
+        > kubectl | less
 
-In the last example, the ``instances`` variable is a dictionary object that holds an element called ``items`` that has all the instance information.  For your reference, if you want to output all the details about a specific VM in human readable form, you can execute the following commands:
+#. One of most basic tasks is to check the nodes of a cluster:
 
-	.. parsed-literal::
+    .. parsed-literal::
+        > kubectl get nodes
+        NAME                                          STATUS    ROLES     AGE       VERSION
+        gke-lab03cluster-default-pool-973a4e96-1k2t   Ready     <none>    2m        v1.9.7-gke.6
+        gke-lab03cluster-default-pool-973a4e96-qvvl   Ready     <none>    2m        v1.9.7-gke.6
+        gke-lab03cluster-default-pool-973a4e96-rlv0   Ready     <none>    2m        v1.9.7-gke.6
 
-		>>> import json
-		>>> print json.dumps(instances['items'][3], indent=4)
-		{
-			"status": "TERMINATED", 
-			"cpuPlatform": "Unknown CPU Platform", 
-			"kind": "compute#instance", 
-			"machineType": "https://www.googleapis.com/compute/v1/projects/cs385-177320/zones/us-west1-c/machineTypes/f1-micro", 
-			"description": "", 
-			"zone": "https://www.googleapis.com/compute/v1/projects/cs385-177320/zones/us-west1-c", 
-			"tags": {
-				"items": [
-					"http-server", 
-					"https-server"
-				], 
-				"fingerprint": "6smc4R4d39I="
-			}, 
-			"labelFingerprint": "42WmSpB8rSM=", 
-			"disks": [
-				{
-					"index": 0, 
-					"kind": "compute#attachedDisk", 
-					"autoDelete": true, 
-					"deviceName": "restserver-0", 
-					"boot": true, 
-					"source": "https://www.googleapis.com/compute/v1/projects/cs385-177320/zones/us-west1-c/disks/restserver-0", 
-					"interface": "SCSI", 
-					"mode": "READ_WRITE", 
-					"licenses": [
-						"https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/licenses/ubuntu-1604-xenial"
-					], 
-					"type": "PERSISTENT"
-				}
-			], 
-			"metadata": {
-				"kind": "compute#metadata", 
-				"fingerprint": "MrjwYBQhfvU="
-			}, 
-			"startRestricted": false, 
-			"scheduling": {
-				"automaticRestart": true, 
-				"preemptible": false, 
-				"onHostMaintenance": "MIGRATE"
-			}, 
-			"canIpForward": false, 
-			"serviceAccounts": [
-				{
-					"scopes": [
-						"https://www.googleapis.com/auth/devstorage.read_only", 
-						"https://www.googleapis.com/auth/logging.write", 
-						"https://www.googleapis.com/auth/monitoring.write", 
-						"https://www.googleapis.com/auth/servicecontrol", 
-						"https://www.googleapis.com/auth/service.management.readonly", 
-						"https://www.googleapis.com/auth/trace.append"
-					], 
-					"email": "684363694185-compute@developer.gserviceaccount.com"
-				}
-			], 
-			"networkInterfaces": [
-				{
-					"kind": "compute#networkInterface", 
-					"network": "https://www.googleapis.com/compute/v1/projects/cs385-177320/global/networks/default", 
-					"accessConfigs": [
-						{
-							"kind": "compute#accessConfig", 
-							"type": "ONE_TO_ONE_NAT", 
-							"name": "External NAT"
-						}
-					], 
-					"networkIP": "10.138.0.3", 
-					"subnetwork": "https://www.googleapis.com/compute/v1/projects/cs385-177320/regions/us-west1/subnetworks/default", 
-					"name": "nic0"
-				}
-			], 
-			"creationTimestamp": "2017-09-13T22:41:40.833-07:00", 
-			"id": "4880605815860865147", 
-			"selfLink": "https://www.googleapis.com/compute/v1/projects/cs385-177320/zones/us-west1-c/instances/restserver-0", 
-			"name": "restserver-0"
-		}
+#. **Pods** are "the smallest deployable units of computing that can be created and managed in Kubernetes" (take a few minutes to review Pods documentation located at https://kubernetes.io/docs/concepts/workloads/pods/pod/).
+   **Pods** are managed with **Deployments**  (https://kubernetes.io/docs/concepts/workloads/controllers/deployment/)
+   Create a Deployment of the *nginx* web server:
+
+    .. parsed-literal::
+        > kubectl run foobar --image=nginx
+
+#. In a Kubernetes cluster, containers run as part of a Pod.
+   In the previous command, Kubernetes created a deployment that executes a single container of the nginx webserver.
+   Verify that a deployment was created:
+
+    .. parsed-literal::
+        > kubectl get deployments
+        NAME      DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+        foobar    1         1         1            1           2m
+
+#. Verify that a corresponding pod was created:
+
+    .. parsed-literal::
+        > kubectl get pods
+        NAME                    READY     STATUS              RESTARTS   AGE
+        foobar-f94c78b8b-bjt74  1/0       Running             0          2m
+
+#. A very useful feature of ``kubectl`` is its option to produce output in json format.  Explore running the previous ``kubectl`` with the ``-o json`` argument. This is particularly useful when creating shell scripts that need to parse the output of ``kubectl``.
+
+#. Suppose you need to know on which host the pod that we created is running.  Inspect the output of ``kubectl -h`` to find out which command will let you know in which host a pod is running. 
+
+#. Delete the deployment:
+
+    .. parsed-literal::
+        > kubectl delete deployment foobar
+
+#. Verify that the foobar pods have been removed. 
 
 
-The format of the return values of all the APIs is also available in the official documentation (refer to links provided).
+Part 3: Deploy a custom image to Kubernetes
+===========================================
+
+In Part 1 we deployed an nginx webserver in a Pod.
+However, that was not particularly useful because the service was never *exposed* to the outside world.
+In this section we are going to create an application that will return the name of the container where it is running.
+In Part 4 we will scale the application and we are going to expose it so it can be called from the web.
 
 
-.. admonition:: Load Balancer Automation
-    :class: worksheet
+#. **On your own:** Create a Docker image that executes a golang application that runs an http server that listens on port 80.
+   When that service is called, it returns the name of the host where is it running (this value is returned by the ``os.Hostname()`` method).
+   For example, suppose the application is running in a container whose name is ``5f17eddbe42d``, and that container has an IP Address of ``172.16.1.1``.
+   When the endpoint is called using a ``curl`` command, it should return the following:
+
+    .. parsed-literal::
+        > curl http://172.16.1.1
+        5f17eddbe42d
+
+#. Make sure you test your image locally.
+
+#. Tag the image as ``gcr.io/<YOUR_GCP_PROJECT_ID>/echohost:latest`` (replace your project id accordingly). In case you need help with the ``docker tag`` command, the documentation is available at https://docs.docker.com/engine/reference/commandline/tag/.
+
+#. Run the ``gcloud auth configure-docker`` to setup your credentials for the GCP Container Registry.
+
+#. Push the image to the Google Cloud Container Registry.
+   Note that in the next command we will use a gcloud utility to push to the registry instead of the normal ``docker push`` command.
+   The reason is because the ``gcr.io`` requires some additional steps to authenticate.
+
+    .. parsed-literal::
+        > gcloud docker -- push gcr.io/<YOUR_GCP_PROJECT_ID>/echohost:latest
+
+#. Verify that the image was pushed to the container registry in the GCP web console (Left navigation menu, under **Tools** > **Container Registry**)
+
+#. Deploy the application to your kubernetes cluster:
+
+    .. parsed-literal::
+        > kubectl run echohost --image=gcr.io/<YOUR_GCP_PROJECT_ID>/echohost:latest
+
+#. Run ``kubectl get pods`` to verify that the pod is running
 
 
-    Create a script or executable that takes the following arguments:
+Part 4: Managing Pods, Deployments, Services and ReplicaSets
+============================================================
 
-    1) project id
-    2) zone
-    3) instance count
+At this point we have a custom application deployed to a kubernetes cluster. In this Part of the lab you will use ``kubectl`` commands to enable the app to do useful work.
 
+#. First, we are going to make our service accessible to the outside world.  The following command will create a **Service**  (https://kubernetes.io/docs/concepts/services-networking/): 
 
-    The script will perform the following tasks:
+    .. parsed-literal::
+        > kubectl expose deployment echohost --port 80 --type LoadBalancer
 
-    1) it will find all the instances (in all zones ) of the load balancers that we created in Lab No.2 and will scale them to the number of instances specified by the **instance_count** argument.  If instance_count is less than the number of running instances, then it will stop the instance that has been running for the longest time.  Note that during a scale up operation you might need to either start existing instances or create new ones.  Make sure also that your script allows scaling up to  a maximum number of instances of 10. If you need to scale down, you should not need to remove the instances, only to stop them.  Note that the instances should autostart the REST API server (You need to research what property of a VM allows you to do that)
+   This command will create a service with a load balancer with an external IP Address associated to it.  The service takes care of forwarding incoming requests to the pods in the deployment.
 
-    2) Your script/executable should gather the internal IP Addresses of the running instances and update and reload the configuration of the load balancer accordingly.  You will probably need to execute an SSH command or shell command to be able do this.
+#. Confirm that the service is running. Wait until an External IP address is assigned.
 
-    You will need to upload the source code of the scripts or executables that you will implement.  You need to also include a markdown file called ``README.md`` were you explain the steps to compile or run your script. You can use any language that works best for you.  If you need to do any build automation, please use a Makefile.  If you need to install software or libraries, make sure that you include a shell script to perform installation tasks (the target being a VM with the same specs as ``lab03-controller``.
-
-
-Useful Links
-------------
-
-Setup API Keys: https://support.google.com/cloud/answer/6158862?hl=en
-
-Example to use application credentials: https://developers.google.com/identity/protocols/application-default-credentials
-
-Google Cloud Python API Client: https://developers.google.com/api-client-library/python/
-
-Google Cloud Python Tutorial: https://cloud.google.com/compute/docs/tutorials/python-guide
-
-Compute Engine Python API: https://developers.google.com/resources/api-libraries/documentation/compute/v1/python/latest/
-
-Google Cloud python package: https://googlecloudplatform.github.io/google-cloud-python/
-
-Markdown Tutorial: https://guides.github.com/features/mastering-markdown/
+    .. parsed-literal::
+        > kubectl get  services
+        NAME         TYPE           CLUSTER-IP      EXTERNAL-IP     PORT(S)        AGE
+        echohost     LoadBalancer   10.59.251.135   35.185.250.86   80:32441/TCP   2m
+        kubernetes   ClusterIP      10.59.240.1     <none>          443/TCP        18h
 
 
+#. Once an External IP Address has been assigned, open another terminal (don't log into **lab03**) and test your service with ``curl`` (Use your own IP Address, and of course, the return name in your case will be different).
+
+    .. parsed-literal::
+        > curl http://35.185.250.86
+        echohost-b88c69458-pxzcx
+
+   Run the previous command several times. The output should not change because the deployment that we created has only one Pod.
+   Compare the output of the service with the output of the ``kubectl get pods`` command.
+
+#. Scale the service by creating a **ReplicaSet** (https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/)
+
+    .. parsed-literal::
+        > kubectl scale deployment echohost --replicas 3
+
+#. Verify that a replicaset was created:
+
+    .. parsed-literal::
+        > kubectl get replicaset
+
+#. Verify the effect of creating a replicaset in the pods that are running.
+   Also, what is the effect of scaling the service in the output of your service (e.i. when you ``curl`` your service's External IP Address)?
+   Explain why you observe this behavior.
+
+
+What to turn in:
+----------------
+
+#. A link to a github repository where you provide all sources required for building the image for Part 3.
+   You shoud include at a minimum one golang file with the application source code, the Dockerfile required to build the image, and either a Makefile or a script that performs the compilation of the golang source.
+   **Do not include compiled binaries!**   
+   As in Lab 2, assume the Docker image needs to be built on a machine that does not have the Golang distribution, the only software that is guaranteed to be installed on that system are docker, make, git and curl/wget.
+   If there is another tool that you require to build your submission, make sure that you ask your instructor first and document it in the repository.
+#. Answer the questions of the last item of Part 4.
+
+Once you are done with the lab, remove the cluster with this command:
+
+    .. parsed-literal::
+        > gcloud container clusters delete lab03cluster --zone us-west1-c
