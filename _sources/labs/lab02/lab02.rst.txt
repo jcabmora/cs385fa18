@@ -1,3 +1,5 @@
+.. role:: strikethrough
+
 *********************
 Lab No. 2: Containers
 *********************
@@ -314,8 +316,8 @@ In this section you are going to work on your own. The objective is to deploy th
 
 - The golang application and the mysql service need to run in two different containers.  You will need to make (a very simple) modification to the minibank application that allows it to handle the fact that the mysql daemon is not running under the same host.
 - The level of optimization of the resulting images will be taken into consideration when your work is evaluated.
-- For the minibank applicaton, use an alpine linux base image. For the mysql image, use an ubuntu or debian image. If you prefer to use MariaDB instead of mysql, that is perfectly fine.
-- The images should not require mounting any directories to run.
+- For the minibank applicaton, use an alpine linux base image. For the mysql image, use an ubuntu or debian image. If you prefer to use MariaDB instead of mysql, that is perfectly fine. **Update 09/20/2018**: You can use a publicly available image for mysql/mariadb.
+- **Updated 09/20/2018**: :strikethrough:`The images should not require mounting any directories to run.` Update 09/20/2018: You are allowed to use mounted directories on your mysql image.
 - The minibank application should be able to handle the fact that the mysql service might not be running when it is started. You will need to modify the minibank sourcecode to return a 503 response in such case.
 - You will need to provide a Makefile that will have the following targets
    - A target called ``minibank`` that will build the minibank docker image. To compile minibank, you need to use the procedure explained in https://github.com/docker-library/docs/tree/master/golang#compile-your-app-inside-the-docker-container. (See note below about the system where this will be tested)

@@ -495,8 +495,8 @@ CMD [&quot;flask&quot;, &quot;run&quot;, &quot;--host=0.0.0.0&quot;, &quot;--por
 <ul class="simple">
 <li>The golang application and the mysql service need to run in two different containers.  You will need to make (a very simple) modification to the minibank application that allows it to handle the fact that the mysql daemon is not running under the same host.</li>
 <li>The level of optimization of the resulting images will be taken into consideration when your work is evaluated.</li>
-<li>For the minibank applicaton, use an alpine linux base image. For the mysql image, use an ubuntu or debian image. If you prefer to use MariaDB instead of mysql, that is perfectly fine.</li>
-<li>The images should not require mounting any directories to run.</li>
+<li>For the minibank applicaton, use an alpine linux base image. For the mysql image, use an ubuntu or debian image. If you prefer to use MariaDB instead of mysql, that is perfectly fine. <strong>Update 09/20/2018</strong>: You can use a publicly available image for mysql/mariadb.</li>
+<li><strong>Updated 09/20/2018</strong>: <span class="strikethrough">The images should not require mounting any directories to run.</span> Update 09/20/2018: You are allowed to use mounted directories on your mysql image.</li>
 <li>The minibank application should be able to handle the fact that the mysql service might not be running when it is started. You will need to modify the minibank sourcecode to return a 503 response in such case.</li>
 <li><dl class="first docutils">
 <dt>You will need to provide a Makefile that will have the following targets</dt>
