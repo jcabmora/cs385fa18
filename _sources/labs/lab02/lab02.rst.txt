@@ -13,6 +13,7 @@ In this lab we are going to:
 3) Build and optmize containers
 4) Deploy and manage containers using the basic docker tools
 
+.. _lab02-part1:
 
 Part 1: Setup a Docker Host
 ===========================

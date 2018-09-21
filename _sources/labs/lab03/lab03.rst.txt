@@ -8,6 +8,8 @@ In this lab you will learn to:
 1) provision a kubernetes cluster in google cloud container engine,
 2) use kubectl to interact with basic kubernetes resources (pods, deployments, replicasets and services)
 
+.. _lab03-part1:
+
 Part 1: Set Up a Kubernetes Cluster
 ===================================
 
@@ -21,12 +23,12 @@ Part 1: Set Up a Kubernetes Cluster
 
 #. SSH into **lab03**
 
-#. Install docker and add the current user to the ``docker`` user group using the same procedure that was used in Part 1 of Lab No. 2. Do not forget to logout and log back in, in order for group membership changes to be reflected.
+#. Install docker and add the current user to the ``docker`` user group (using the same procedure that was used in :ref:`Part 1 of Lab No. 2<lab02-part1>`. Do not forget to logout and log back in, in order for group membership changes to be reflected.
 
 #. Install the **kubectl** utility
 
     .. parsed-literal::
-        > sudo snap install kubectl --clasic
+        > sudo snap install kubectl --classic
 
 #. Run the following command to test the ``kubectl`` installation.
 
@@ -139,6 +141,8 @@ In Part 4 we will scale the application and we are going to expose it so it can 
 
 #. Run ``kubectl get pods`` to verify that the pod is running
 
+
+.. _lab03-part4:
 
 Part 4: Managing Pods, Deployments, Services and ReplicaSets
 ============================================================
