@@ -108,7 +108,7 @@ Part 3: Deploy to Kubernetes
 #. Deploy minibank:
 
     .. parsed-literal::
-        > kubectl create -f kubernetes/minibank.sql
+        > kubectl create -f kubernetes/minibank.yaml
 
 #. Verify that both minibank and mysql pods are running
 
