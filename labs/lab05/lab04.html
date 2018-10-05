@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Lab No. 5: Horizontal Scalability and State &#8212; CS385 Cloud Systems Architecture  documentation</title>
+    <link rel="stylesheet" href="../../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<link href="https://fonts.googleapis.com/css?family=Lusitana|Inconsolata|Roboto" rel="stylesheet">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../index.html">
+          CS385 Cloud Systems Architecture</a>
+        <span class="navbar-text navbar-version pull-left"><b></b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../syllabus.html">CS385 Cloud Systems Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab01/lab01.html">Lab No. 1: Deploying an Application to Google Cloud</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab02/lab02.html">Lab No. 2: Containers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab03/lab03.html">Lab No. 3 Container Orchestration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab04/lab04.html">Lab No. 4: Scalability and Load Balancing</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">Lab No. 5: Horizontal Scalability and State</a><ul>
+<li><a class="reference internal" href="#part-1-setup-a-kubernetes-cluster">Part 1: Setup a Kubernetes Cluster</a></li>
+<li><a class="reference internal" href="#part-2-testing-an-authorization-service">Part 2: Testing an authorization service</a></li>
+<li><a class="reference internal" href="#part-3-measuring-your-instance-performance">Part 3: Measuring your instance performance</a></li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../../_sources/labs/lab05/lab04.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="section" id="lab-no-5-horizontal-scalability-and-state">
+<h1>Lab No. 5: Horizontal Scalability and State<a class="headerlink" href="#lab-no-5-horizontal-scalability-and-state" title="Permalink to this headline">¶</a></h1>
+<p>In this lab we are going to evaluate the implications for scalabitly when applications store data locally.</p>
+<div class="section" id="part-1-setup-a-kubernetes-cluster">
+<h2>Part 1: Setup a Kubernetes Cluster<a class="headerlink" href="#part-1-setup-a-kubernetes-cluster" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic">
+<li><p class="first">Provision a Kubernetes cluster by following the steps from <a class="reference internal" href="../lab03/lab03.html#lab03-part1"><span class="std std-ref">Part 1 of Lab No. 3.</span></a>. Name the virtual machine  <strong>lab05</strong> and name your Kubernetes Cluster <strong>lab05cluster</strong>
+Make sure that you test the kubernetes cluster by deploying a test pod. (Any image is fine, as long as it lets you  confirm that the Kubernetes cluster is running.</p>
+</li>
+<li><p class="first">On lab05 install <cite>make</cite>:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">make</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ol>
+</div>
+<div class="section" id="part-2-testing-an-authorization-service">
+<h2>Part 2: Testing an authorization service<a class="headerlink" href="#part-2-testing-an-authorization-service" title="Permalink to this headline">¶</a></h2>
+<p>For this part of the lab, you will download an update version of minibank that implements two different authentication schemas: cookie based and token based.</p>
+<ol class="arabic">
+<li><p class="first">Download the update minibank source from <a class="reference external" href="https://github.com/jcabmora/minibank/tree/week6/week6">https://github.com/jcabmora/minibank/tree/week6/week6</a></p>
+</li>
+<li><p class="first">Build and run the images locally on <code class="docutils literal"><span class="pre">lab05</span></code>:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">curl</span> <span class="n">make</span> <span class="n">run</span><span class="o">-</span><span class="n">images</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Verify that there are two docker images running,  <code class="docutils literal"><span class="pre">minibank</span></code> and <code class="docutils literal"><span class="pre">mysql</span></code>.</p>
+</li>
+<li><p class="first">Test that the service works by registering a user:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">curl</span> <span class="n">localhost</span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">account</span><span class="o">/</span><span class="n">register</span> <span class="o">-</span><span class="n">d</span> <span class="s1">&#39;{&quot;username&quot;: &quot;john&quot;, &quot;password&quot;: &quot;john123456&quot;}&#39;</span>
+<span class="n">Successfully</span> <span class="n">registered</span> <span class="n">account</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ol>
+<p>The new version of minibank exposes two new REST API endpoints:</p>
+<ul>
+<li><p class="first"><strong>/api/account/login</strong>: authenticates username/password credentials. If the authentication succeeds, generates session data internally and returns an empty <code class="docutils literal"><span class="pre">200</span></code> response with a <code class="docutils literal"><span class="pre">sessionid</span></code> cookie. For example, the following command:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">curl</span> <span class="o">-</span><span class="n">c</span> <span class="n">cookies</span><span class="o">.</span><span class="n">txt</span> <span class="n">localhost</span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">account</span> <span class="n">login</span> <span class="o">-</span><span class="n">d</span> <span class="s1">&#39;{&quot;username&quot;: &quot;john&quot;, &quot;password&quot;: &quot;john123456&quot;}&#39;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ul>
+<p>When the previous command is run, it will store cookie information in a file called <code class="docutils literal"><span class="pre">cookies.txt</span></code>. Once you open that file you should verify that it has been populated:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">cat</span> <span class="n">cookies</span><span class="o">.</span><span class="n">txt</span>
+<span class="c1"># Netscape HTTP Cookie File</span>
+<span class="c1"># https://curl.haxx.se/docs/http-cookies.html</span>
+<span class="c1"># This file was generated by libcurl! Edit at your own risk.</span>
+
+<span class="n">localhost</span>       <span class="n">FALSE</span>   <span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">account</span><span class="o">/</span>   <span class="n">FALSE</span>   <span class="mi">0</span>       <span class="n">sessionid</span>       <span class="mi">9</span><span class="n">de2b793</span><span class="o">-</span><span class="n">c6aa</span><span class="o">-</span><span class="mi">44</span><span class="n">f4</span><span class="o">-</span><span class="mf">8e06</span><span class="o">-</span><span class="mi">9</span><span class="n">b8525cacbd1</span>
+</pre></div>
+</div>
+</div></blockquote>
+<ul>
+<li><p class="first"><strong>/api/account/token</strong>:  also authenticates username/password credentials. If the authentication succeeds, then it returns a JSON payload that contains a JSON Web Token that can be used for token authorization.</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">curl</span> <span class="o">-</span><span class="n">X</span> <span class="n">POST</span> <span class="n">localhost</span><span class="p">:</span><span class="mi">8080</span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">account</span><span class="o">/</span><span class="n">token</span> <span class="o">-</span><span class="n">d</span> <span class="s1">&#39;{&quot;username&quot;: &quot;john&quot;, &quot;password&quot;: &quot;john123456&quot;}&#39;</span>
+<span class="p">{</span><span class="s2">&quot;token&quot;</span><span class="p">:</span><span class="s2">&quot;eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1Mzg4NDM2NzMsInVzZXJuYW1lIjoicmFtb24ifQ.QUQjgByqzclFM-GQ_tqvQogiwIVLUpI-Iu6SjLCRAMw&quot;</span><span class="p">}</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first"><strong>/api/account/sessions</strong>: returns a list of the sessions that are associated with an authenticated user. Users need to provide either cookie or token proof of authentication. For example, to execute this using cookies:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">curl</span> <span class="o">-</span><span class="n">b</span> <span class="n">cookies</span><span class="o">.</span><span class="n">txt</span> <span class="n">localhost</span><span class="p">:</span><span class="mi">8080</span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">account</span><span class="o">/</span><span class="n">sessions</span>
+<span class="p">{</span><span class="s2">&quot;sessions&quot;</span><span class="p">:[</span><span class="s2">&quot;9bf4a24c-71bc-42de-8432-68bfbdd941d9&quot;</span><span class="p">,</span><span class="s2">&quot;9de2b793-c6aa-44f4-8e06-9b8525cacbd1&quot;</span><span class="p">]}</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ul>
+<p>of if you prefer to use a token:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">curl</span>  <span class="o">-</span><span class="n">H</span> <span class="s2">&quot;Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1Mzg4NDM2NzMsInVzZXJuYW1lIjoicmFtb24ifQ.QUQjgByqzclFM-GQ_tqvQogiwIVLUpI-Iu6SjLCRAMw&quot;</span> <span class="n">localhost</span><span class="p">:</span><span class="mi">8080</span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">account</span><span class="o">/</span><span class="n">sessions</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>In this part of the lab you will deploy a very simple application that exposes a REST API with two endpoints:</p>
+<ul>
+<li><p class="first"><code class="docutils literal"><span class="pre">POST</span> <span class="pre">/fibonacci</span></code>: takes a json payload with a single element <code class="docutils literal"><span class="pre">fibonacci_number</span></code> of type int. Example:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">curl</span> <span class="o">-</span><span class="n">X</span> <span class="n">POST</span> <span class="o">-</span><span class="n">H</span> <span class="s1">&#39;Content-Type: application/json&#39;</span> <span class="n">http</span><span class="p">:</span><span class="o">//&lt;</span><span class="n">IP_ADDR</span><span class="o">&gt;</span><span class="p">:</span><span class="mi">8080</span><span class="o">/</span><span class="n">fibonacci</span> <span class="o">-</span><span class="n">d</span> <span class="s1">&#39;{&quot;fibonacci_number&quot;: 27}&#39;</span>
+<span class="p">{</span><span class="s2">&quot;fibonacci_number&quot;</span><span class="p">:</span><span class="mi">27</span><span class="p">,</span><span class="s2">&quot;value&quot;</span><span class="p">:</span><span class="mi">196418</span><span class="p">}</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">GET</span> <span class="pre">/status</span></code>: returns internal state maintaned by the application (the size of a fibonacci number internal cache and a request counter)</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">curl</span> <span class="n">http</span><span class="p">:</span><span class="o">//&lt;</span><span class="n">IP_ADDR</span><span class="o">&gt;</span><span class="p">:</span><span class="mi">8080</span><span class="o">/</span><span class="n">status</span>
+<span class="p">{</span><span class="s2">&quot;cache_length&quot;</span><span class="p">:</span><span class="mi">1001</span><span class="p">,</span><span class="s2">&quot;request_count&quot;</span><span class="p">:</span><span class="mi">2847</span><span class="p">}</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ul>
+<p>The application is hardcoded to listen in port 8080. The source of the application is the following:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span>package main
+
+import (
+	&quot;encoding/json&quot;
+	&quot;errors&quot;
+	&quot;fmt&quot;
+	&quot;io/ioutil&quot;
+	&quot;log&quot;
+	&quot;net/http&quot;
+)
+
+type FibonacciRequest struct {
+	FibonacciNumber int `json:&quot;fibonacci_number&quot;`
+}
+
+type FibonacciResponse struct {
+	FibonacciNumber int    `json:&quot;fibonacci_number&quot;`
+	Value           uint64 `json:&quot;value&quot;`
+}
+
+type StatusResponse struct {
+	CacheLength  int `json:&quot;cache_length&quot;`
+	RequestCount int `json:&quot;request_count&quot;`
+}
+
+var call_count = 0
+var fibonacci_numbers = []uint64{0, 1}
+
+func main() {
+	http.HandleFunc(&quot;/status&quot;, StatusHandler)
+	http.HandleFunc(&quot;/fibonacci&quot;, FibonacciHandler)
+	log.Fatal(http.ListenAndServe(&quot;:8080&quot;, nil))
+}
+
+func StatusHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodGet {
+		sr := StatusResponse{len(fibonacci_numbers), call_count}
+		jsonbytes, err := json.Marshal(sr)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(&quot;Unable to process request&quot;))
+		}
+		w.Header().Set(&quot;Content-Type&quot;, &quot;application/json&quot;)
+		fmt.Fprintf(w, string(jsonbytes))
+	} else {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(&quot;Unsupported Method&quot;))
+	}
+}
+
+func FibonacciHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(&quot;Unable to read request body.&quot;))
+		} else {
+			call_count += 1
+			fr := FibonacciRequest{}
+			err = json.Unmarshal(body, &amp;fr)
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write([]byte(&quot;Unable to unmarshal request JSON&quot;))
+			} else {
+				if fr.FibonacciNumber &gt; 92 {
+					w.WriteHeader(http.StatusBadRequest)
+					w.Write([]byte(&quot;Sorry, I can only get to F(92)&quot;))
+				} else {
+					result, err := calc_fibonacci(fr.FibonacciNumber)
+					if err != nil {
+						w.WriteHeader(http.StatusBadRequest)
+						w.Write([]byte(err.Error()))
+					} else {
+						fresp := FibonacciResponse{fr.FibonacciNumber, result}
+						jsonbytes, err := json.Marshal(fresp)
+						if err != nil {
+							w.WriteHeader(http.StatusInternalServerError)
+							w.Write([]byte(&quot;Unable to process request&quot;))
+						}
+						w.Header().Set(&quot;Content-Type&quot;, &quot;application/json&quot;)
+						fmt.Fprintf(w, string(jsonbytes))
+					}
+				}
+			}
+		}
+	} else {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(&quot;Unsupported Method.&quot;))
+	}
+}
+
+func calc_fibonacci(number int) (uint64, error) {
+	if number &lt; 0 {
+		return 0, errors.New(&quot;Negative, really?&quot;)
+	}
+	if number &gt;= len(fibonacci_numbers) {
+		result := uint64(0)
+		for i := len(fibonacci_numbers); i &lt;= number; i++ {
+			result = fibonacci_numbers[i-2] + fibonacci_numbers[i-1]
+			fibonacci_numbers = append(fibonacci_numbers, result)
+		}
+	}
+	return fibonacci_numbers[number], nil
+}
+</pre></div>
+</div>
+</div></blockquote>
+<ol class="arabic simple">
+<li>Create a docker image to run this application. Tag the image as <code class="docutils literal"><span class="pre">gcr.io/&lt;YOUR_GCP_PROJECT&gt;/fibonacci:latest</span></code> (replace your GCP project ID accordingly).  Test your image locally, and once you have confirmed that it works, push the image to the Google Cloud Container Registry.</li>
+<li>Create a Kubernetes Service that exposes the application using a <strong>Load Balancer</strong> type. (Same procedure as items 1 and 2 in <a class="reference internal" href="../lab03/lab03.html#lab03-part4"><span class="std std-ref">Part 4 of Lab 3</span></a>).</li>
+<li>Wait until your service has been assigned an external IP Address. Once this is done, test your service before proceeding to the next section of the Lab. Do not scale your service since for next lab section, we need it to be running with only one replica.</li>
+</ol>
+</div>
+<div class="section" id="part-3-measuring-your-instance-performance">
+<h2>Part 3: Measuring your instance performance<a class="headerlink" href="#part-3-measuring-your-instance-performance" title="Permalink to this headline">¶</a></h2>
+<p>To measure the performance of our web service we are going to use <em>ApacheBench</em>, also known as <code class="docutils literal"><span class="pre">ab</span></code>, a popular benchmarking tool (<a class="reference external" href="https://httpd.apache.org/docs/2.4/programs/ab.html">https://httpd.apache.org/docs/2.4/programs/ab.html</a>).</p>
+<ol class="arabic">
+<li><p class="first">SSH into the <strong>lab04</strong> instance. Run the following sequence of commands to install <code class="docutils literal"><span class="pre">ab</span></code>:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">update</span>
+<span class="o">&gt;</span> <span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="o">-</span><span class="n">y</span> <span class="n">apache2</span><span class="o">-</span><span class="n">utils</span> <span class="n">build</span><span class="o">-</span><span class="n">essential</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Since we are going to run our benchmarks with high concurrency levels, we need to increment the maximum number of open files that the kernel will allow.  Run the following command (Note: this is not a persistent change, and you will need to run this command again if you log out or reboot <strong>lab04</strong>)</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;&gt;</span> <span class="n">ulimit</span> <span class="o">-</span><span class="n">n</span> <span class="mi">25000</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Create a file called <code class="docutils literal"><span class="pre">payload.json</span></code> with a single line with <code class="docutils literal"><span class="pre">{&quot;fibonacci_number&quot;:</span> <span class="pre">20}</span></code> as its content:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">echo</span> <span class="s1">&#39;{&quot;fibonacci_number&quot;: 20}&#39;</span> <span class="o">&gt;</span> <span class="n">payload</span><span class="o">.</span><span class="n">json</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Run a test <code class="docutils literal"><span class="pre">ab</span></code> benchmark to verify installation (replace <code class="docutils literal"><span class="pre">&lt;SERVICE_EXT_IP&gt;</span></code> with the external IP address of the Kubernetes service that you deployed in the previous section):</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span>  <span class="n">ab</span> <span class="o">-</span><span class="n">p</span> <span class="n">payload</span><span class="o">.</span><span class="n">json</span> <span class="o">-</span><span class="n">T</span> <span class="n">application</span><span class="o">/</span><span class="n">json</span> <span class="o">-</span><span class="n">m</span> <span class="n">POST</span> <span class="o">-</span><span class="n">n</span> <span class="mi">100</span> <span class="o">-</span><span class="n">s</span> <span class="mi">100</span> <span class="o">-</span><span class="n">r</span> <span class="n">http</span><span class="p">:</span><span class="o">//&lt;</span><span class="n">SERVICE_EXT_IP</span><span class="o">&gt;</span><span class="p">:</span><span class="mi">8080</span><span class="o">/</span><span class="n">fibonacci</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>In the previous command, <code class="docutils literal"><span class="pre">ab</span></code> executed 100 requests (which is indicated by the <code class="docutils literal"><span class="pre">-n</span></code> argument) with a <strong>concurrency level of 1</strong> (which is the default value when the <code class="docutils literal"><span class="pre">-c</span></code> option is ommitted.).</p>
+</li>
+<li><p class="first">In the <code class="docutils literal"><span class="pre">ab</span></code> benchmark that we run before, the <code class="docutils literal"><span class="pre">-c</span></code> option is used to simulate a given number of simultaneous connections (10 in that case),  the <code class="docutils literal"><span class="pre">-n</span></code> option is used to determine the number of requests to issue(10 requests in the example). Experiment running <code class="docutils literal"><span class="pre">ab</span></code> with different concurrency levels, in batches of 10000 requests.  Fill out the following table:</p>
+</li>
+</ol>
+<table border="1" class="minitable docutils">
+<colgroup>
+<col width="17%" />
+<col width="13%" />
+<col width="34%" />
+<col width="19%" />
+<col width="17%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Concurrency</th>
+<th class="head">Requests</th>
+<th class="head">Requests per second (mean)</th>
+<th class="head">Longest request</th>
+<th class="head">98 percentile</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>50</td>
+<td>10000</td>
+<td>&#160;</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>100</td>
+<td>10000</td>
+<td>&#160;</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>500</td>
+<td>10000</td>
+<td>&#160;</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>1000</td>
+<td>10000</td>
+<td>&#160;</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>2000</td>
+<td>10000</td>
+<td>&#160;</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>5000</td>
+<td>20000</td>
+<td>&#160;</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>10000</td>
+<td>30000</td>
+<td>&#160;</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>15000</td>
+<td>45000</td>
+<td>&#160;</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Apparently <code class="docutils literal"><span class="pre">ab</span></code> has a bug where if one of the requests times out, it exits with the message <code class="docutils literal"><span class="pre">apr_pollset_poll:</span> <span class="pre">The</span> <span class="pre">timeout</span> <span class="pre">specified</span> <span class="pre">has</span> <span class="pre">expired</span> <span class="pre">(70007)</span></code>, instead of recording it as a failed request. If you run into this problem try to run the test again.</p>
+</div>
+<div class="worksheet admonition">
+<p class="first admonition-title">What to turn in</p>
+<p>Answer the following questions. Assume that you are not allowed to modify your current Kubernets infrastructure (i.e. you are not allowed to add more worker nodes to your Kubernetes cluster):</p>
+<ol class="last arabic simple">
+<li>Using the previous observations, determine approximately at which concurrency level the performance of the fibonacci service begins to degrade.</li>
+<li>Repeat the measurements made with <code class="docutils literal"><span class="pre">ab</span></code> when the service is scaled to 3, 6, 9 and 12 replicas. Save the data in a comma delimited file (csv) with the following columns: <code class="docutils literal"><span class="pre">replicas</span></code>, <code class="docutils literal"><span class="pre">concurrency</span></code>, <code class="docutils literal"><span class="pre">requests_per_second</span></code>, <code class="docutils literal"><span class="pre">longest_request</span></code>, <code class="docutils literal"><span class="pre">98_percentile</span></code>. You will need to upload this file during your Lab submission.</li>
+<li>Did you get a noticeable improvement between 9 and 12 replicas? Explain this behavior.</li>
+<li>What is the maximum throughput your service can provide?  What is the maximum concurrency that you can support, while maintaining maximum throughput? How many replicas (approximately) do you need to support that concurrency level and throughput?</li>
+<li>Suppose we expect our service to have a maximum number of 2000 concurrent users.
+We have a Service Level Agreement with our customers in which we guarantee a maximum response time up to 1.5 seconds, with a mean response of less than 300 milliseconds, with requests 98% of the time less than 600 ms.  Can we fulfill those requirements? If so, how many replicas will be needed?</li>
+</ol>
+</div>
+</div>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Lab No. 5: Horizontal Scalability and State &#8212; CS385 Cloud Systems Architecture  documentation</title>
+    <link rel="stylesheet" href="../../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="prev" title="Lab No. 4: Scalability and Load Balancing" href="../lab04/lab04.html" />
+<link href="https://fonts.googleapis.com/css?family=Lusitana|Inconsolata|Roboto" rel="stylesheet">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../index.html">
+          CS385 Cloud Systems Architecture</a>
+        <span class="navbar-text navbar-version pull-left"><b></b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../syllabus.html">CS385 Cloud Systems Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab01/lab01.html">Lab No. 1: Deploying an Application to Google Cloud</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab02/lab02.html">Lab No. 2: Containers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab03/lab03.html">Lab No. 3 Container Orchestration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab04/lab04.html">Lab No. 4: Scalability and Load Balancing</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Lab No. 5: Horizontal Scalability and State</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">Lab No. 5: Horizontal Scalability and State</a><ul>
+<li><a class="reference internal" href="#part-1-setup-a-kubernetes-cluster">Part 1: Setup a Kubernetes Cluster</a></li>
+<li><a class="reference internal" href="#part-2-authorization-apis">Part 2: Authorization APIs</a></li>
+<li><a class="reference internal" href="#part-3-deploy-to-kubernetes">Part 3: Deploy to Kubernetes</a></li>
+<li><a class="reference internal" href="#part-4-scale">Part 4: Scale</a></li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="../lab04/lab04.html" title="Previous Chapter: Lab No. 4: Scalability and Load Balancing"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Lab No. 4: Sc...</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../../_sources/labs/lab05/lab05.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="section" id="lab-no-5-horizontal-scalability-and-state">
+<h1>Lab No. 5: Horizontal Scalability and State<a class="headerlink" href="#lab-no-5-horizontal-scalability-and-state" title="Permalink to this headline">¶</a></h1>
+<p>In this lab we are going to evaluate the implications for scalabitly when applications store data locally.</p>
+<div class="section" id="part-1-setup-a-kubernetes-cluster">
+<h2>Part 1: Setup a Kubernetes Cluster<a class="headerlink" href="#part-1-setup-a-kubernetes-cluster" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic">
+<li><p class="first">Provision a Kubernetes cluster by following the steps from <a class="reference internal" href="../lab03/lab03.html#lab03-part1"><span class="std std-ref">Part 1 of Lab No. 3.</span></a>. Name the virtual machine  <strong>lab05</strong> and name your Kubernetes Cluster <strong>lab05cluster</strong>
+Make sure that you test the kubernetes cluster by deploying a test pod. (Any image is fine, as long as it lets you  confirm that the Kubernetes cluster is running.</p>
+</li>
+<li><p class="first">On lab05 install <code class="docutils literal"><span class="pre">make</span></code>:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">make</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ol>
+</div>
+<div class="section" id="part-2-authorization-apis">
+<h2>Part 2: Authorization APIs<a class="headerlink" href="#part-2-authorization-apis" title="Permalink to this headline">¶</a></h2>
+<p>For this part of the lab, you will download an updated version of minibank that implements two different authentication schemas: cookie-based and token-based.</p>
+<ol class="arabic">
+<li><p class="first">Download the updated minibank source from <a class="reference external" href="https://github.com/jcabmora/minibank/tree/week6">https://github.com/jcabmora/minibank/tree/week6</a></p>
+</li>
+<li><p class="first">Build and run the images locally on <code class="docutils literal"><span class="pre">lab05</span></code>:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">curl</span> <span class="n">make</span> <span class="n">run</span><span class="o">-</span><span class="n">images</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Verify that there are two docker images running,  <code class="docutils literal"><span class="pre">minibank</span></code> and <code class="docutils literal"><span class="pre">mysql</span></code>.</p>
+</li>
+<li><p class="first">Test that the service works by registering a user:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">curl</span> <span class="n">localhost</span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">account</span><span class="o">/</span><span class="n">register</span> <span class="o">-</span><span class="n">d</span> <span class="s1">&#39;{&quot;username&quot;: &quot;john&quot;, &quot;password&quot;: &quot;john123456&quot;}&#39;</span>
+<span class="n">Successfully</span> <span class="n">registered</span> <span class="n">account</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ol>
+<p>The new version of minibank exposes two new REST API endpoints:</p>
+<ul>
+<li><p class="first"><strong>/api/account/login</strong>: authenticates username/password credentials. If the authentication succeeds, generates session data internally and returns an empty <code class="docutils literal"><span class="pre">200</span></code> response with a <code class="docutils literal"><span class="pre">sessionid</span></code> cookie. For example:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">curl</span> <span class="o">-</span><span class="n">c</span> <span class="n">cookies</span><span class="o">.</span><span class="n">txt</span> <span class="n">localhost</span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">account</span><span class="o">/</span><span class="n">login</span> <span class="o">-</span><span class="n">d</span> <span class="s1">&#39;{&quot;username&quot;: &quot;john&quot;, &quot;password&quot;: &quot;john123456&quot;}&#39;</span>
+</pre></div>
+</div>
+<p>When the previous command executes, it should store cookie information in a file called <code class="docutils literal"><span class="pre">cookies.txt</span></code>. Once you open that file you should be able to confirm that a cookie was received.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">cat</span> <span class="n">cookies</span><span class="o">.</span><span class="n">txt</span>
+<span class="c1"># Netscape HTTP Cookie File</span>
+<span class="c1"># https://curl.haxx.se/docs/http-cookies.html</span>
+<span class="c1"># This file was generated by libcurl! Edit at your own risk.</span>
+
+<span class="n">localhost</span>       <span class="n">FALSE</span>   <span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">account</span><span class="o">/</span>   <span class="n">FALSE</span>   <span class="mi">0</span>       <span class="n">sessionid</span>       <span class="mi">9</span><span class="n">de2b793</span><span class="o">-</span><span class="n">c6aa</span><span class="o">-</span><span class="mi">44</span><span class="n">f4</span><span class="o">-</span><span class="mf">8e06</span><span class="o">-</span><span class="mi">9</span><span class="n">b8525cacbd1</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first"><strong>/api/account/token</strong>:  also authenticates username/password credentials. If the authentication succeeds, then it returns a JSON payload that contains a JSON Web Token that can be used for token authorization.</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">curl</span> <span class="o">-</span><span class="n">X</span> <span class="n">POST</span> <span class="n">localhost</span><span class="p">:</span><span class="mi">8080</span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">account</span><span class="o">/</span><span class="n">token</span> <span class="o">-</span><span class="n">d</span> <span class="s1">&#39;{&quot;username&quot;: &quot;john&quot;, &quot;password&quot;: &quot;john123456&quot;}&#39;</span>
+<span class="p">{</span><span class="s2">&quot;token&quot;</span><span class="p">:</span><span class="s2">&quot;eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1Mzg4NDM2NzMsInVzZXJuYW1lIjoicmFtb24ifQ.QUQjgByqzclFM-GQ_tqvQogiwIVLUpI-Iu6SjLCRAMw&quot;</span><span class="p">}</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first"><strong>/api/account/sessions</strong>: returns a list of the sessions that are associated with an authenticated user. Users need to provide either cookie or token proof of authentication. For example, to execute this using cookies:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">curl</span> <span class="o">-</span><span class="n">b</span> <span class="n">cookies</span><span class="o">.</span><span class="n">txt</span> <span class="n">localhost</span><span class="p">:</span><span class="mi">8080</span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">account</span><span class="o">/</span><span class="n">sessions</span>
+<span class="p">{</span><span class="s2">&quot;sessions&quot;</span><span class="p">:[</span><span class="s2">&quot;9bf4a24c-71bc-42de-8432-68bfbdd941d9&quot;</span><span class="p">,</span><span class="s2">&quot;9de2b793-c6aa-44f4-8e06-9b8525cacbd1&quot;</span><span class="p">]}</span>
+</pre></div>
+</div>
+<p>Or if you prefer to use a token:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">curl</span>  <span class="o">-</span><span class="n">H</span> <span class="s2">&quot;Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1Mzg4NDM2NzMsInVzZXJuYW1lIjoicmFtb24ifQ.QUQjgByqzclFM-GQ_tqvQogiwIVLUpI-Iu6SjLCRAMw&quot;</span> <span class="n">localhost</span><span class="p">:</span><span class="mi">8080</span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">account</span><span class="o">/</span><span class="n">sessions</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ul>
+</div>
+<div class="section" id="part-3-deploy-to-kubernetes">
+<h2>Part 3: Deploy to Kubernetes<a class="headerlink" href="#part-3-deploy-to-kubernetes" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic">
+<li><p class="first">We first need to push the images to the Google Container Registry.</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">make</span> <span class="n">push</span><span class="o">-</span><span class="n">images</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Open the <code class="docutils literal"><span class="pre">kubernetes/mysql.yaml</span></code> file on a text editor and replace &lt;YOUR_PROJECT_ID&gt; with your google cloud project id.</p>
+</li>
+<li><p class="first">Deploy the service:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">kubectl</span> <span class="n">create</span> <span class="o">-</span><span class="n">f</span> <span class="n">kubernetes</span><span class="o">/</span><span class="n">mysql</span><span class="o">.</span><span class="n">yaml</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Verify that the deployment is running</p>
+</li>
+<li><p class="first">You can test that your mysql instance is running by executing this command:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">kubectl</span> <span class="n">run</span> <span class="o">-</span><span class="n">it</span> <span class="o">--</span><span class="n">rm</span> <span class="o">--</span><span class="n">image</span><span class="o">=</span><span class="n">mysql</span><span class="p">:</span><span class="mf">5.6</span> <span class="o">--</span><span class="n">restart</span><span class="o">=</span><span class="n">Never</span> <span class="n">mysql</span><span class="o">-</span><span class="n">client</span> <span class="o">--</span> <span class="n">mysql</span> <span class="o">-</span><span class="n">h</span> <span class="n">mysql</span> <span class="o">-</span><span class="n">uminibank</span> <span class="o">-</span><span class="n">pminibank</span>
+<span class="n">If</span> <span class="n">you</span> <span class="n">don</span><span class="s1">&#39;t see a command prompt, try pressing enter.</span>
+<span class="n">mysql</span><span class="o">&gt;</span> <span class="n">exit</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Open the <code class="docutils literal"><span class="pre">kubernetes/minibank.yaml</span></code> file on a text editor and replace &lt;YOUR_PROJECT_ID&gt; with your google cloud project id.</p>
+</li>
+<li><p class="first">Deploy minibank:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">kubectl</span> <span class="n">create</span> <span class="o">-</span><span class="n">f</span> <span class="n">kubernetes</span><span class="o">/</span><span class="n">minibank</span><span class="o">.</span><span class="n">sql</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Verify that both minibank and mysql pods are running</p>
+</li>
+<li><p class="first">Create the minibank service:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">kubectl</span> <span class="n">expose</span> <span class="n">deployment</span> <span class="n">minibank</span> <span class="o">--</span><span class="n">port</span> <span class="mi">8080</span> <span class="o">--</span><span class="nb">type</span> <span class="n">LoadBalancer</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Wait until an External IP address is assigned to the minibank service.</p>
+</li>
+<li><p class="first">If there is a <code class="docutils literal"><span class="pre">cookies.txt</span></code> file in your current working directory, remove it.</p>
+</li>
+<li><p class="first">Once you have an External IP address assigned to the minibank service, test the service:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">curl</span> <span class="n">http</span><span class="p">:</span><span class="o">//&lt;</span><span class="n">MINIBANK_SERVICE_IP_ADDRESS</span><span class="o">&gt;</span><span class="p">:</span><span class="mi">8080</span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">account</span><span class="o">/</span><span class="n">register</span> <span class="o">-</span><span class="n">d</span> <span class="s1">&#39;{&quot;username&quot;: &quot;john&quot;, &quot;password&quot;: &quot;john123456&quot;}&#39;</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Test the <code class="docutils literal"><span class="pre">/api/account/login</span></code> endpoint:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">curl</span> <span class="o">-</span><span class="n">c</span> <span class="n">cookies</span><span class="o">.</span><span class="n">txt</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="mf">35.233</span><span class="o">.</span><span class="mf">244.190</span><span class="p">:</span><span class="mi">8080</span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">account</span><span class="o">/</span><span class="n">login</span> <span class="o">-</span><span class="n">d</span> <span class="s1">&#39;{&quot;username&quot;: &quot;john&quot;, &quot;password&quot;: &quot;john123456&quot;}&#39;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Test the <code class="docutils literal"><span class="pre">/api/account/sessions</span></code> endpoint (confirm taht the session in the response matches the <code class="docutils literal"><span class="pre">sessionid</span></code> stored in <code class="docutils literal"><span class="pre">cookies.txt</span></code></p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span>  <span class="n">curl</span> <span class="o">-</span><span class="n">b</span> <span class="n">cookies</span><span class="o">.</span><span class="n">txt</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="mf">35.233</span><span class="o">.</span><span class="mf">244.190</span><span class="p">:</span><span class="mi">8080</span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">account</span><span class="o">/</span><span class="n">sessions</span>
+<span class="p">{</span><span class="s2">&quot;sessions&quot;</span><span class="p">:[</span><span class="s2">&quot;04ba9908-604b-4ff6-a5c0-12a547afe3fb&quot;</span><span class="p">]}</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Test the authentication with <code class="docutils literal"><span class="pre">/api/account/token</span></code> and use the obtained token to test <code class="docutils literal"><span class="pre">/api/account/sessions</span></code></p>
+</li>
+</ol>
+</div>
+<div class="section" id="part-4-scale">
+<h2>Part 4: Scale<a class="headerlink" href="#part-4-scale" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li>Scale the minibank service to 5 replicas, and wait until all pods are runninig.</li>
+<li>Make 5 more calls to the <code class="docutils literal"><span class="pre">/api/account/sessions</span></code> API using cookie base authorization. What do you observe?</li>
+<li>Make 5 more call to the <code class="docutils literal"><span class="pre">/api/account/sessions</span></code> API using the token that was obtained earlier. What do you observe?</li>
+</ol>
+<div class="worksheet admonition">
+<p class="first admonition-title">What to turn in</p>
+<ol class="last arabic simple">
+<li>Answer to both questions from part 4, and provide an explanation for the observed behavior.</li>
+<li>Which one of the authentication methods proves to be more scalable.  What modifications can be done to the authentication method that is less scalable (or not scalable at all) in order to improve its scalability.</li>
+</ol>
+</div>
+</div>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>
