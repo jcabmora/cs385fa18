@@ -28,7 +28,7 @@ For this part of the lab, you will download an updated version of minibank that 
 #. Build and run the images locally on ``lab05``:
 
     .. parsed-literal::
-        > curl make run-images
+        > make run-images
 
 #. Verify that there are two docker images running,  ``minibank`` and ``mysql``.
 
