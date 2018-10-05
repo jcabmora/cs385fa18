@@ -192,7 +192,7 @@ Make sure that you test the kubernetes cluster by deploying a test pod. (Any ima
 </li>
 <li><p class="first"><strong>/api/account/token</strong>:  also authenticates username/password credentials. If the authentication succeeds, then it returns a JSON payload that contains a JSON Web Token that can be used for token authorization.</p>
 <blockquote>
-<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">curl</span> <span class="o">-</span><span class="n">X</span> <span class="n">POST</span> <span class="n">localhost</span><span class="p">:</span><span class="mi">8080</span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">account</span><span class="o">/</span><span class="n">token</span> <span class="o">-</span><span class="n">d</span> <span class="s1">&#39;{&quot;username&quot;: &quot;john&quot;, &quot;password&quot;: &quot;john123456&quot;}&#39;</span>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">curl</span> <span class="o">-</span><span class="n">X</span> <span class="n">POST</span> <span class="n">localhost</span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">account</span><span class="o">/</span><span class="n">token</span> <span class="o">-</span><span class="n">d</span> <span class="s1">&#39;{&quot;username&quot;: &quot;john&quot;, &quot;password&quot;: &quot;john123456&quot;}&#39;</span>
 <span class="p">{</span><span class="s2">&quot;token&quot;</span><span class="p">:</span><span class="s2">&quot;eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1Mzg4NDM2NzMsInVzZXJuYW1lIjoicmFtb24ifQ.QUQjgByqzclFM-GQ_tqvQogiwIVLUpI-Iu6SjLCRAMw&quot;</span><span class="p">}</span>
 </pre></div>
 </div>
@@ -200,12 +200,12 @@ Make sure that you test the kubernetes cluster by deploying a test pod. (Any ima
 </li>
 <li><p class="first"><strong>/api/account/sessions</strong>: returns a list of the sessions that are associated with an authenticated user. Users need to provide either cookie or token proof of authentication. For example, to execute this using cookies:</p>
 <blockquote>
-<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">curl</span> <span class="o">-</span><span class="n">b</span> <span class="n">cookies</span><span class="o">.</span><span class="n">txt</span> <span class="n">localhost</span><span class="p">:</span><span class="mi">8080</span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">account</span><span class="o">/</span><span class="n">sessions</span>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">curl</span> <span class="o">-</span><span class="n">b</span> <span class="n">cookies</span><span class="o">.</span><span class="n">txt</span> <span class="n">localhost</span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">account</span><span class="o">/</span><span class="n">sessions</span>
 <span class="p">{</span><span class="s2">&quot;sessions&quot;</span><span class="p">:[</span><span class="s2">&quot;9bf4a24c-71bc-42de-8432-68bfbdd941d9&quot;</span><span class="p">,</span><span class="s2">&quot;9de2b793-c6aa-44f4-8e06-9b8525cacbd1&quot;</span><span class="p">]}</span>
 </pre></div>
 </div>
 <p>Or if you prefer to use a token:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">curl</span>  <span class="o">-</span><span class="n">H</span> <span class="s2">&quot;Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1Mzg4NDM2NzMsInVzZXJuYW1lIjoicmFtb24ifQ.QUQjgByqzclFM-GQ_tqvQogiwIVLUpI-Iu6SjLCRAMw&quot;</span> <span class="n">localhost</span><span class="p">:</span><span class="mi">8080</span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">account</span><span class="o">/</span><span class="n">sessions</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">curl</span>  <span class="o">-</span><span class="n">H</span> <span class="s2">&quot;Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1Mzg4NDM2NzMsInVzZXJuYW1lIjoicmFtb24ifQ.QUQjgByqzclFM-GQ_tqvQogiwIVLUpI-Iu6SjLCRAMw&quot;</span> <span class="n">localhost</span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">account</span><span class="o">/</span><span class="n">sessions</span>
 </pre></div>
 </div>
 </div></blockquote>
