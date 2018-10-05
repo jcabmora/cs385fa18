@@ -129,12 +129,12 @@ Part 3: Deploy to Kubernetes
 #. Test the ``/api/account/login`` endpoint:
    
     .. parsed-literal::
-        > curl -c cookies.txt http://35.233.244.190:8080/api/account/login -d '{"username": "john", "password": "john123456"}'
+        > curl -c cookies.txt http://<MINIBANK_SERVICE_IP_ADDRESS>:8080/api/account/login -d '{"username": "john", "password": "john123456"}'
 
 #. Test the ``/api/account/sessions`` endpoint (confirm taht the session in the response matches the ``sessionid`` stored in ``cookies.txt``
    
     .. parsed-literal::
-        >  curl -b cookies.txt http://35.233.244.190:8080/api/account/sessions
+        >  curl -b cookies.txt http://<MINIBANK_SERVICE_IP_ADDRESS>:8080/api/account/sessions
         {"sessions":["04ba9908-604b-4ff6-a5c0-12a547afe3fb"]}
 
 #. Test the authentication with ``/api/account/token`` and use the obtained token to test ``/api/account/sessions`` 
