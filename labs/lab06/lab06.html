@@ -136,6 +136,45 @@
 <h1>Lab No. 6: Relational and Non-Relational Databases<a class="headerlink" href="#lab-no-6-relational-and-non-relational-databases" title="Permalink to this headline">¶</a></h1>
 <p>In this lab we are going to compare the performance of two database systems.
 We are going to use an updated version of the minibank application that stores session data in a Relational Database instead of in memory. In previous labs, logging with session cookies was not scalable because session data was stored locally on each minibank process. Now, session data is stored in a database, so it is accessible to every node, which means that we can safely scale minibank horizontally.</p>
+<div class="worksheet admonition">
+<p class="first admonition-title">Tips mentioned in class:</p>
+<ol class="last arabic">
+<li><p class="first">You will need to install python2.7 and virtualenv in <code class="docutils literal"><span class="pre">lab06</span></code></p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">update</span>
+<span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">python2</span><span class="o">.</span><span class="mi">7</span> <span class="n">virtualenv</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">You need to update the Makefile to force it to use python2.7. Make line 38 on the Makefile look like this (make sure you preserve the tab space in front of the command):</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">virtualenv</span> <span class="n">venv</span> <span class="o">--</span><span class="n">python</span><span class="o">=</span><span class="n">python2</span><span class="o">.</span><span class="mi">7</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">If after entering one of the mysql containers, you get stuck and can’t get out (that means, you can’t type the <code class="docutils literal"><span class="pre">exit</span></code> command to exit out of the container), you can terminate the interactive session with the container by looking for the <code class="docutils literal"><span class="pre">kubectl</span></code> process and killing it.</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">ps</span> <span class="n">fax</span> <span class="o">|</span> <span class="n">grep</span> <span class="n">kubectl</span>
+</pre></div>
+</div>
+<p>look at the output of the previous command, determine the process id that you want to terminate and then use the following command to kill it (replace PID with the process id):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">kill</span> <span class="o">-</span><span class="mi">9</span> <span class="n">PID</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">To delete Kubernetes resources:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">kubectl</span> <span class="n">delete</span> <span class="n">TYPE</span> <span class="n">RESOURCENAME</span>
+</pre></div>
+</div>
+<p><cite>TYPE</cite> is one of <code class="docutils literal"><span class="pre">service</span></code>, <code class="docutils literal"><span class="pre">deployment</span></code>, <code class="docutils literal"><span class="pre">pod</span></code>, etc and <cite>RESOURCENAME</cite> is the name of the resource that you want to delete. Deleting a deployment deletes its associated pods.</p>
+</div></blockquote>
+</li>
+</ol>
+</div>
 <div class="section" id="part-1-setup-a-kubernetes-cluster">
 <h2>Part 1: Setup a Kubernetes Cluster<a class="headerlink" href="#part-1-setup-a-kubernetes-cluster" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
