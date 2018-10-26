@@ -7,6 +7,10 @@ body {
   font-family: 'Lusitana', serif;
 }
 
+blockquote {
+    font-size: 14px;
+}
+
 code {
   font-family: 'Inconsolata';
  }

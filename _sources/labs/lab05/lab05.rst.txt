@@ -17,6 +17,8 @@ Part 1: Setup a Kubernetes Cluster
     .. parsed-literal::
         > sudo apt-get install make
 
+.. _lab05-part2:
+
 Part 2: Authorization APIs
 ==========================
 
@@ -76,6 +78,7 @@ The new version of minibank exposes two new REST API endpoints:
         > curl  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1Mzg4NDM2NzMsInVzZXJuYW1lIjoicmFtb24ifQ.QUQjgByqzclFM-GQ_tqvQogiwIVLUpI-Iu6SjLCRAMw" localhost/api/account/sessions
 
 
+.. _lab05-part3:
 
 Part 3: Deploy to Kubernetes
 ============================

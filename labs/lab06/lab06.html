@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Lab No. 6: Relational and Non-Relational Databases &#8212; CS385 Cloud Systems Architecture  documentation</title>
+    <link rel="stylesheet" href="../../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="prev" title="Lab No. 5: Horizontal Scalability and State" href="../lab05/lab05.html" />
+<link href="https://fonts.googleapis.com/css?family=Lusitana|Inconsolata|Roboto" rel="stylesheet">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../index.html">
+          CS385 Cloud Systems Architecture</a>
+        <span class="navbar-text navbar-version pull-left"><b></b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../syllabus.html">CS385 Cloud Systems Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab01/lab01.html">Lab No. 1: Deploying an Application to Google Cloud</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab02/lab02.html">Lab No. 2: Containers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab03/lab03.html">Lab No. 3 Container Orchestration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab04/lab04.html">Lab No. 4: Scalability and Load Balancing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab05/lab05.html">Lab No. 5: Horizontal Scalability and State</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Lab No. 6: Relational and Non-Relational Databases</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">Lab No. 6: Relational and Non-Relational Databases</a><ul>
+<li><a class="reference internal" href="#part-1-setup-a-kubernetes-cluster">Part 1: Setup a Kubernetes Cluster</a></li>
+<li><a class="reference internal" href="#part-2-deployment-of-a-sql-database">Part 2: Deployment of a SQL database</a></li>
+<li><a class="reference internal" href="#part-3-deployment-of-a-clustered-sql-database">Part 3: Deployment of a clustered SQL database</a></li>
+<li><a class="reference internal" href="#part-4-add-support-to-a-no-sql-database">Part 4: Add support to a NO-SQL database</a></li>
+<li><a class="reference internal" href="#part-5-deployment-of-a-no-sql-database">Part 5: Deployment of a NO-SQL database</a></li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="../lab05/lab05.html" title="Previous Chapter: Lab No. 5: Horizontal Scalability and State"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Lab No. 5: Ho...</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../../_sources/labs/lab06/lab06.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="section" id="lab-no-6-relational-and-non-relational-databases">
+<h1>Lab No. 6: Relational and Non-Relational Databases<a class="headerlink" href="#lab-no-6-relational-and-non-relational-databases" title="Permalink to this headline">¶</a></h1>
+<p>In this lab we are going to compare the performance of two database systems.
+We are going to use an updated version of the minibank application that stores session data in a Relational Database instead of in memory. In previous labs, logging with session cookies was not scalable because session data was stored locally on each minibank process. Now, session data is stored in a database, so it is accessible to every node, which means that we can safely scale minibank horizontally.</p>
+<div class="section" id="part-1-setup-a-kubernetes-cluster">
+<h2>Part 1: Setup a Kubernetes Cluster<a class="headerlink" href="#part-1-setup-a-kubernetes-cluster" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic">
+<li><p class="first">Provision a Kubernetes cluster by following the steps from <a class="reference internal" href="../lab03/lab03.html#lab03-part1"><span class="std std-ref">Part 1 of Lab No. 3.</span></a>. Name the virtual machine  <strong>lab06</strong> and name your Kubernetes Cluster <strong>lab06cluster</strong>
+Make sure that you test the kubernetes cluster by deploying a test pod. (Any image is fine, as long as it lets you  confirm that the Kubernetes cluster is running.</p>
+</li>
+<li><p class="first">Install <code class="docutils literal"><span class="pre">make</span></code> and <code class="docutils literal"><span class="pre">ab</span></code> on <strong>labo6</strong>:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">update</span>
+<span class="o">&gt;</span> <span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="o">-</span><span class="n">y</span> <span class="n">make</span> <span class="n">apache2</span><span class="o">-</span><span class="n">utils</span> <span class="n">build</span><span class="o">-</span><span class="n">essential</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ol>
+</div>
+<div class="section" id="part-2-deployment-of-a-sql-database">
+<h2>Part 2: Deployment of a SQL database<a class="headerlink" href="#part-2-deployment-of-a-sql-database" title="Permalink to this headline">¶</a></h2>
+<p>In this part of the lab, you are going to deploy a 1 node Maria DB, deploy minibank, and then run an AB test to measure performance of both read and write.
+Download an <strong>updated</strong> version of minibank from <a class="reference external" href="https://github.com/jcabmora/minibank/archive/week9.zip">https://github.com/jcabmora/minibank/archive/week9.zip</a></p>
+<ol class="arabic">
+<li><p class="first">Build and test the images locally (on the <strong>lab06</strong> VM)</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">make</span> <span class="n">run</span><span class="o">-</span><span class="n">images</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Confirm that all the API endpoints that are listed in <a class="reference internal" href="../lab05/lab05.html#lab05-part2"><span class="std std-ref">Part 2 of Lab No. 5.</span></a> work.</p>
+</li>
+<li><p class="first">Follow the procedure of <a class="reference internal" href="../lab05/lab05.html#lab05-part3"><span class="std std-ref">Part 3 of Lab No. 5.</span></a> to deploy mysql and minibank to the Kubernetes cluster you provisioned at the beginning of this Lab.</p>
+</li>
+</ol>
+<p>#. We are going to test the performance of the current minibank/mariadb deployments.
+For this lab, there is tooling added in the <code class="docutils literal"><span class="pre">load_test</span></code> directory.
+There is a <code class="docutils literal"><span class="pre">make</span></code> target that has been added to simplify calling this script.
+When executing this target, you can use the <code class="docutils literal"><span class="pre">REPLICAS</span></code> argument to provide a space separated list of replicas for the minibank app and also use <code class="docutils literal"><span class="pre">TAG</span></code> to specify names of result files:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">make</span> <span class="n">load</span><span class="o">-</span><span class="n">test</span> <span class="n">REPLICAS</span><span class="o">=</span><span class="s1">&#39;1 3&#39;</span> <span class="n">TAG</span><span class="o">=</span><span class="n">mysql</span>
+</pre></div>
+</div>
+<p>This command will take a few minutes. It will scale the <code class="docutils literal"><span class="pre">minibank</span></code> deployment to first run with 1 replica, run a series of AB tests and collect the results, and then will scale to 3 replicas and repeat. You can open the <code class="docutils literal"><span class="pre">load_test/collect.py</span></code> to review the script.  The make file calls this script and specifies to use the <code class="docutils literal"><span class="pre">api/account/login</span></code> endpoint. Since this endpoint <strong>writes</strong> to the database, this is a <strong>WRITE</strong> performance test.</p>
+</div></blockquote>
+</div>
+<div class="section" id="part-3-deployment-of-a-clustered-sql-database">
+<h2>Part 3: Deployment of a clustered SQL database<a class="headerlink" href="#part-3-deployment-of-a-clustered-sql-database" title="Permalink to this headline">¶</a></h2>
+<p>In this part of the lab, you are going to deploy a 3 node MariaDB cluster, deploy minibank and then run an AB test to measure performance of both read and writes.
+MariaDB can be run in a multi-master synchronous replication mode using Galera.
+Setting up a MariaDB cluster is a delicate process (details are described here: <a class="reference external" href="http://galeracluster.com/documentation-webpages/startingcluster.html">http://galeracluster.com/documentation-webpages/startingcluster.html</a>) that requires the first node to start the cluster, and then subsequent nodes to be started one by one.</p>
+<ol class="arabic">
+<li><p class="first">Remove the minibank service, minibank deployment, the mysql service and the mysql deployment</p>
+</li>
+<li><p class="first">Deploy again the mysql service, but this time use the <code class="docutils literal"><span class="pre">kubernetes/galera.yaml</span></code> resource file (do not forget to <strong>update your project id</strong>)</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">kubectl</span> <span class="n">create</span> <span class="o">-</span><span class="n">f</span> <span class="n">kubernetes</span><span class="o">/</span><span class="n">galera</span><span class="o">.</span><span class="n">yaml</span>
+</pre></div>
+</div>
+<p>The previous command will start three pods. However, these are not running the <code class="docutils literal"><span class="pre">mysqld</span></code> daemon, and we have to manually bootstrap the cluster. In future labs you will automate this process with the help of Zookeeper).</p>
+</div></blockquote>
+</li>
+<li><p class="first">We need to start the cluster one node at a time. Run the following command to get a list of your pods:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">kubectl</span> <span class="n">get</span> <span class="n">pods</span>
+<span class="n">NAME</span>                     <span class="n">READY</span>     <span class="n">STATUS</span>    <span class="n">RESTARTS</span>   <span class="n">AGE</span>
+<span class="n">mysql</span><span class="o">-</span><span class="mi">664</span><span class="n">d7f45f7</span><span class="o">-</span><span class="n">b42b4</span>   <span class="mi">1</span><span class="o">/</span><span class="mi">1</span>       <span class="n">Running</span>   <span class="mi">0</span>          <span class="mi">22</span><span class="n">m</span>
+<span class="n">mysql</span><span class="o">-</span><span class="mi">664</span><span class="n">d7f45f7</span><span class="o">-</span><span class="n">lt5kp</span>   <span class="mi">1</span><span class="o">/</span><span class="mi">1</span>       <span class="n">Running</span>   <span class="mi">0</span>          <span class="mi">22</span><span class="n">m</span>
+<span class="n">mysql</span><span class="o">-</span><span class="mi">664</span><span class="n">d7f45f7</span><span class="o">-</span><span class="n">wmqdq</span>   <span class="mi">1</span><span class="o">/</span><span class="mi">1</span>       <span class="n">Running</span>   <span class="mi">0</span>          <span class="mi">22</span><span class="n">m</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">The first pod will <em>bootstrap</em> the galera cluster. Pick one of the pods, and start an interactive session into it (In the following example pod <code class="docutils literal"><span class="pre">mysql-664d7f45f7-b42b4</span></code> was selected):</p>
+<blockquote>
+<div><pre class="literal-block">
+&gt; kubectl exec -it mysql-664d7f45f7-b42b4 bash
+root&#64;mysql-664d7f45f7-b42b4:/#
+</pre>
+</div></blockquote>
+</li>
+<li><p class="first">Once you have an interactive session with the first pod, we are going to start the <code class="docutils literal"><span class="pre">mysqld</span></code> daemon with the following options:</p>
+<blockquote>
+<div><ul class="simple">
+<li>an option to enable mysql to be run as the mysql user (<code class="docutils literal"><span class="pre">--user=mysql</span></code>)</li>
+<li>an option to enable synchronous replication (<code class="docutils literal"><span class="pre">--wsrep_on=ON</span></code>)</li>
+<li>an option to bootstrap a new galera cluster (<code class="docutils literal"><span class="pre">--wsrep-new-cluster</span></code>)</li>
+<li>an option to assign a server id of 1 (<code class="docutils literal"><span class="pre">--server-id=1</span></code>)</li>
+<li>an option to name the cluster (<code class="docutils literal"><span class="pre">--wsrep-cluster-name=lab06</span></code>)</li>
+<li>an option to enable the appropriate binary log format required by galera (<code class="docutils literal"><span class="pre">--binlog_format=ROW</span></code>)</li>
+<li>an option to specify the replication domain id (<code class="docutils literal"><span class="pre">--wsrep_gtid_domain_id=1</span></code>)</li>
+<li>an option to specify the protocol used to perform state transfers (<code class="docutils literal"><span class="pre">--wsrep_sst_method=rsync</span></code>)</li>
+<li>an option to specify the cluster address (<code class="docutils literal"><span class="pre">--wsrep_cluster_address=gcom://</span></code>)</li>
+<li>an option to use galera as the replication library (<code class="docutils literal"><span class="pre">--wsrep_provider=/usr/lib/galera/libgalera_smm.so</span></code>).</li>
+</ul>
+<p>Notice  that in the following example the pod prompt is included, as a way to reiterate the fact that this command should be executed <strong>in the pod</strong>.
+Once you run this command, stdout will be written to console immediately, and the shell prompt <strong>will not</strong> be displayed immediately, you need to press <code class="kbd docutils literal"><span class="pre">ENTER</span></code>.
+Also, notice that we use the <code class="docutils literal"><span class="pre">&amp;</span></code> at the end of the command to run it as a background process:</p>
+<pre class="literal-block">
+root&#64;mysql-664d7f45f7-b42b4:/#  mysqld --user=mysql --wsrep-cluster-name=lab06 --server-id=1 --wsrep_on=ON --wsrep-new-cluster --binlog_format=ROW --wsrep_gtid_domain_id=1 --wsrep_sst_method=rsync --wsrep_cluster_address=gcomm:// --wsrep_provider=/usr/lib/galera/libgalera_smm.so &amp;
+</pre>
+</div></blockquote>
+</li>
+<li><p class="first">To confirm that the <code class="docutils literal"><span class="pre">mysqld</span></code> daemon is running and configured properly to use galera replication, we can verify that the status variable <code class="docutils literal"><span class="pre">wsrep_cluster_status</span></code> is equal to <code class="docutils literal"><span class="pre">Primary</span></code>:</p>
+<blockquote>
+<div><pre class="literal-block">
+root&#64;mysql-664d7f45f7-b42b4:/# mysql -uroot -phobbes -e 'SHOW STATUS LIKE &quot;wsrep_cluster_status&quot;;'
++----------------------+---------+
+| Variable_name        | Value   |
++----------------------+---------+
+| wsrep_cluster_status | Primary |
++----------------------+---------+
+</pre>
+</div></blockquote>
+</li>
+<li><p class="first">Find out the ipaddress of the pod, since we are going to need it for other nodes to join the cluster:</p>
+<blockquote>
+<div><pre class="literal-block">
+root&#64;mysql-664d7f45f7-b42b4:/# ip address
+1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+3: eth0&#64;if40: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1460 qdisc noqueue state UP group default
+    link/ether 0a:58:0a:3c:00:25 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    inet 10.60.0.37/24 scope global eth0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::24c5:65ff:fe6e:b4cc/64 scope link
+       valid_lft forever preferred_lft forever
+</pre>
+</div></blockquote>
+</li>
+<li><p class="first">Exit out of the first pod. Select the second pod and start an interactive session.  Execute the following command to start the <code class="docutils literal"><span class="pre">mysqld</span></code> and have it join the galera cluster that we started previously. Notice that we removed the <code class="docutils literal"><span class="pre">--wsrep-new-cluster</span></code> flag, that we updated the <code class="docutils literal"><span class="pre">--server-id=2</span></code> argument and also that <strong>you need to update</strong> the <code class="docutils literal"><span class="pre">--wsrep_cluster_address</span></code> parameter by replacing <code class="docutils literal"><span class="pre">XXX.XXX.XXX.XXX</span></code> with the IP Address that you determined on the previous step.</p>
+<blockquote>
+<div><pre class="literal-block">
+root&#64;mysql-664d7f45f7-njgsd:/# mysqld --user=mysql --wsrep-cluster-name=lab06 --server-id=2 --wsrep_on=ON  --binlog_format=ROW --wsrep_gtid_domain_id=1 --wsrep_sst_method=rsync --wsrep_cluster_address=gcomm://XXX.XXX.XXX.XXX --wsrep_provider=/usr/lib/galera/libgalera_smm.so &amp;
+</pre>
+</div></blockquote>
+</li>
+<li><p class="first">To verify that all is OK, query again the value of the  <code class="docutils literal"><span class="pre">wsrep_cluster_status</span></code> global variable on the second pod.</p>
+</li>
+<li><p class="first">Repeat the previous two steps on the third pod. Make sure that you update the server id parameter (to be <code class="docutils literal"><span class="pre">server-id=3</span></code>). For cluster address you can also use the address of the first node.</p>
+</li>
+<li><p class="first">Deploy the minibank service:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">kubectl</span> <span class="n">create</span> <span class="o">-</span><span class="n">f</span> <span class="n">kubernetes</span><span class="o">/</span><span class="n">minibank</span><span class="o">.</span><span class="n">yaml</span>
+<span class="o">&gt;</span> <span class="n">kubectl</span> <span class="n">expose</span> <span class="n">deployment</span> <span class="n">minibank</span> <span class="o">--</span><span class="n">port</span> <span class="mi">8080</span> <span class="o">--</span><span class="nb">type</span> <span class="n">LoadBalancer</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Wait until an External IP address is assigned to the minibank service.</p>
+</li>
+<li><p class="first">Test the service:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">curl</span> <span class="n">http</span><span class="p">:</span><span class="o">//&lt;</span><span class="n">MINIBANK_SERVICE_IP_ADDRESS</span><span class="o">&gt;</span><span class="p">:</span><span class="mi">8080</span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">account</span><span class="o">/</span><span class="n">register</span> <span class="o">-</span><span class="n">d</span> <span class="s1">&#39;{&quot;username&quot;: &quot;john&quot;, &quot;password&quot;: &quot;john123456&quot;}&#39;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Log into each one of the pods, start a mysql session, and compare the result of the following query on all the pods. Does this match your expectation?</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">SELECT</span> <span class="o">*</span> <span class="n">FROM</span> <span class="n">minibank</span><span class="o">.</span><span class="n">sessions</span><span class="p">;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Delete one from the <code class="docutils literal"><span class="pre">minibank.sessions</span></code> table, and compare the effect on the other two nodes (you should see that the other nodes also reflect the deleted row).</p>
+</li>
+<li><p class="first">Run the load test again, this will take several minutes. Use <code class="docutils literal"><span class="pre">TAG=galera</span></code></p>
+</li>
+</ol>
+</div>
+<div class="section" id="part-4-add-support-to-a-no-sql-database">
+<h2>Part 4: Add support to a NO-SQL database<a class="headerlink" href="#part-4-add-support-to-a-no-sql-database" title="Permalink to this headline">¶</a></h2>
+<p>The version of minibank that is provided for this lab has most of the work done so it can store sessions in cassandra. However, you need to update the sources to implement the logic to interact with the database backend. There are three placeholders in the <code class="docutils literal"><span class="pre">src/minibank/handlers/account.go</span></code> file wher you need to implement the additional logic:</p>
+<ul class="simple">
+<li>The function that inserts rows in the sessions table</li>
+<li>The function that looks up a single row in the sessions table</li>
+<li>The function that looks up a list of rows for a specific user in the sessions table.</li>
+</ul>
+<p>The purpose of this exercise is to become aware of how NoSQL databases implement interfaces and behaviors that are very similar to SQL databases, but also have some key differences.</p>
+<p>For this part you need to do your own research.
+There are many sites that you can use to learn about cassandra.
+For this lab you do not need to be an expert, but it will help to understand the basics.
+The material available at <a class="reference external" href="https://www.guru99.com/cassandra-tutorial.html">https://www.guru99.com/cassandra-tutorial.html</a> is very helpful, as well as the Cassandra project’s <em>Getting Started</em> page (<a class="reference external" href="http://cassandra.apache.org/doc/latest/getting_started/index.html">http://cassandra.apache.org/doc/latest/getting_started/index.html</a>)</p>
+<p>To quickly get access to a running Cassandra instance, you can use the <code class="docutils literal"><span class="pre">run-images</span></code> make target.
+This will deploy a container running Cassandra.
+You can log into it and immediately start a <code class="docutils literal"><span class="pre">cqlsh</span></code> session.</p>
+<p>Since we will be using the <code class="docutils literal"><span class="pre">gocql</span></code> library to interact with cassandra, the obvious starting point is its <code class="docutils literal"><span class="pre">README</span></code>: <a class="reference external" href="https://github.com/gocql/gocql">https://github.com/gocql/gocql</a>
+The Cassandra keyspace and the session table are created in the <code class="docutils literal"><span class="pre">InitCassandra</span></code> function that is in the  <code class="docutils literal"><span class="pre">src/minibank/models/db.go</span></code> file.
+Please base the CQL statements in your logic on those definitions.</p>
+<p>For this part of the lab, add the missing logic, and test it locally.
+To enable minibank to run and use a Cassandra backend, you need to make sure you run the minibank application with the environment variable <code class="docutils literal"><span class="pre">ENABLE_CASSANDRA=TRUE</span></code>.</p>
+</div>
+<div class="section" id="part-5-deployment-of-a-no-sql-database">
+<h2>Part 5: Deployment of a NO-SQL database<a class="headerlink" href="#part-5-deployment-of-a-no-sql-database" title="Permalink to this headline">¶</a></h2>
+<p>Once you have updated minibank, we are going to run it with a single cassandra node.</p>
+<ol class="arabic">
+<li><p class="first">Remove all the deployments and services from kubernetes</p>
+</li>
+<li><p class="first">Deploy cassandra:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">kubectl</span> <span class="n">create</span> <span class="o">-</span><span class="n">f</span> <span class="n">kubernetes</span><span class="o">/</span><span class="n">cassandra</span><span class="o">.</span><span class="n">yaml</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Open the <code class="docutils literal"><span class="pre">kubernetes/minibank-cass.yaml</span></code> file and update it with your project</p>
+</li>
+<li><p class="first">Deploy minibank:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">kubectl</span> <span class="n">create</span> <span class="o">-</span><span class="n">f</span> <span class="n">kubernetes</span><span class="o">/</span><span class="n">minibank</span><span class="o">-</span><span class="n">cass</span><span class="o">.</span><span class="n">yaml</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Test that all the API endpoints work</p>
+</li>
+<li><p class="first">Log into the cassandra container and verify that session data is being populated in the <code class="docutils literal"><span class="pre">minibank.sessions</span></code> cassandra table.</p>
+</li>
+<li><p class="first">Run your load tests again. Use <code class="docutils literal"><span class="pre">TAG=cassandra</span></code></p>
+</li>
+</ol>
+<div class="worksheet admonition">
+<p class="first admonition-title">What to turn in</p>
+<ol class="last arabic simple">
+<li>The updated source code for <code class="docutils literal"><span class="pre">src/minibank/handlers/account.go</span></code></li>
+<li>The load test results.</li>
+<li>A discussion of the load test results.</li>
+</ol>
+</div>
+</div>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>
