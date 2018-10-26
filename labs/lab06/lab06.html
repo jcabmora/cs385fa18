@@ -292,18 +292,20 @@ root&#64;mysql-664d7f45f7-njgsd:/# mysqld --user=mysql --wsrep-cluster-name=lab0
 <li><p class="first">Test the service:</p>
 <blockquote>
 <div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">curl</span> <span class="n">http</span><span class="p">:</span><span class="o">//&lt;</span><span class="n">MINIBANK_SERVICE_IP_ADDRESS</span><span class="o">&gt;</span><span class="p">:</span><span class="mi">8080</span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">account</span><span class="o">/</span><span class="n">register</span> <span class="o">-</span><span class="n">d</span> <span class="s1">&#39;{&quot;username&quot;: &quot;john&quot;, &quot;password&quot;: &quot;john123456&quot;}&#39;</span>
+<span class="o">&gt;</span> <span class="n">curl</span> <span class="o">-</span><span class="n">c</span> <span class="n">cookies</span><span class="o">.</span><span class="n">txt</span> <span class="n">http</span><span class="p">:</span><span class="o">//&lt;</span><span class="n">MINIBANK_SERVICE_IP_ADDRESS</span><span class="o">&gt;</span><span class="p">:</span><span class="mi">8080</span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">account</span><span class="o">/</span><span class="n">login</span> <span class="o">-</span><span class="n">d</span> <span class="s1">&#39;{&quot;username&quot;: &quot;jane&quot;, &quot;password&quot;: &quot;jane123456&quot;}&#39;</span>
 </pre></div>
 </div>
 </div></blockquote>
 </li>
 <li><p class="first">Log into each one of the pods, start a mysql session, and compare the result of the following query on all the pods. Does this match your expectation?</p>
 <blockquote>
-<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">SELECT</span> <span class="o">*</span> <span class="n">FROM</span> <span class="n">minibank</span><span class="o">.</span><span class="n">sessions</span><span class="p">;</span>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">SELECT</span> <span class="o">*</span> <span class="n">FROM</span> <span class="n">minibank</span><span class="o">.</span><span class="n">account</span><span class="p">;</span>
+<span class="o">&gt;</span> <span class="n">SELECT</span> <span class="o">*</span> <span class="n">FROM</span> <span class="n">minibank</span><span class="o">.</span><span class="n">sessions</span><span class="p">;</span>
 </pre></div>
 </div>
 </div></blockquote>
 </li>
-<li><p class="first">Delete one from the <code class="docutils literal"><span class="pre">minibank.sessions</span></code> table, and compare the effect on the other two nodes (you should see that the other nodes also reflect the deleted row).</p>
+<li><p class="first">Delete one row from the <code class="docutils literal"><span class="pre">minibank.sessions</span></code> table, and compare the effect on the other two nodes (you should see that the other nodes also reflect the deleted row).</p>
 </li>
 <li><p class="first">Run the load test again, this will take several minutes. Use <code class="docutils literal"><span class="pre">TAG=galera</span></code></p>
 </li>

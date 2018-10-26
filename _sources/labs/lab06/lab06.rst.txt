@@ -149,13 +149,15 @@ Setting up a MariaDB cluster is a delicate process (details are described here: 
 
     .. parsed-literal::
         > curl http://<MINIBANK_SERVICE_IP_ADDRESS>:8080/api/account/register -d '{"username": "john", "password": "john123456"}'
+        > curl -c cookies.txt http://<MINIBANK_SERVICE_IP_ADDRESS>:8080/api/account/login -d '{"username": "jane", "password": "jane123456"}'
 
 #. Log into each one of the pods, start a mysql session, and compare the result of the following query on all the pods. Does this match your expectation?
 
     .. parsed-literal::
+        > SELECT * FROM minibank.account;
         > SELECT * FROM minibank.sessions;
 
-#. Delete one from the ``minibank.sessions`` table, and compare the effect on the other two nodes (you should see that the other nodes also reflect the deleted row).
+#. Delete one row from the ``minibank.sessions`` table, and compare the effect on the other two nodes (you should see that the other nodes also reflect the deleted row).
 
 #. Run the load test again, this will take several minutes. Use ``TAG=galera``
 
