@@ -157,15 +157,15 @@ Implementation of locks in distributed systems is very complex. Zookeeper provid
 
 
     .. parsed-literal::
-        > python updatedb.py
+        > python3 updatedb.py
         > cat database.txt
         1000
 
 #. If you execute the script several times, then you will see that the database is updated correctly. For example, if you run the script two more times, a total of 3000 is reflected:
 
     .. parsed-literal::
-        > python updatedb.py
-        > python updatedb.py
+        > python3 updatedb.py
+        > python3 updatedb.py
         > cat database.txt
         3000
 
