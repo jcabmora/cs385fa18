@@ -27,6 +27,7 @@
     <script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Lab No. 7: Distributed Coordination with Zookeeper" href="../lab07/lab07.html" />
     <link rel="prev" title="Lab No. 5: Horizontal Scalability and State" href="../lab05/lab05.html" />
 <link href="https://fonts.googleapis.com/css?family=Lusitana|Inconsolata|Roboto" rel="stylesheet">
 
@@ -68,6 +69,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../lab04/lab04.html">Lab No. 4: Scalability and Load Balancing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../lab05/lab05.html">Lab No. 5: Horizontal Scalability and State</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Lab No. 6: Relational and Non-Relational Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab07/lab07.html">Lab No. 7: Distributed Coordination with Zookeeper</a></li>
 </ul>
 </ul>
 </li>
@@ -99,6 +101,10 @@
                 
   <li>
     <a href="../lab05/lab05.html" title="Previous Chapter: Lab No. 5: Horizontal Scalability and State"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Lab No. 5: Ho...</span>
+    </a>
+  </li>
+  <li>
+    <a href="../lab07/lab07.html" title="Next Chapter: Lab No. 7: Distributed Coordination with Zookeeper"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Lab No. 7: Di... &raquo;</span>
     </a>
   </li>
               
@@ -220,7 +226,7 @@ When executing this target, you can use the <code class="docutils literal"><span
 </div></blockquote>
 </div>
 <div class="section" id="part-3-deployment-of-a-clustered-sql-database">
-<h2>Part 3: Deployment of a clustered SQL database<a class="headerlink" href="#part-3-deployment-of-a-clustered-sql-database" title="Permalink to this headline">¶</a></h2>
+<span id="lab06-part3"></span><h2>Part 3: Deployment of a clustered SQL database<a class="headerlink" href="#part-3-deployment-of-a-clustered-sql-database" title="Permalink to this headline">¶</a></h2>
 <p>In this part of the lab, you are going to deploy a 3 node MariaDB cluster, deploy minibank and then run an AB test to measure performance of both read and writes.
 MariaDB can be run in a multi-master synchronous replication mode using Galera.
 Setting up a MariaDB cluster is a delicate process (details are described here: <a class="reference external" href="http://galeracluster.com/documentation-webpages/startingcluster.html">http://galeracluster.com/documentation-webpages/startingcluster.html</a>) that requires the first node to start the cluster, and then subsequent nodes to be started one by one.</p>

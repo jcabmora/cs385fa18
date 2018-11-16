@@ -1,0 +1,276 @@
+
+**************************************************
+Lab No. 7: Distributed Coordination with Zookeeper
+**************************************************
+
+In this lab we are going to learn how to use Zookeeper to support distributed coordination tasks.
+
+Prerequisite
+============
+
+Before starting this lab, make sure that you have read the official overview page, located at https://zookeeper.apache.org/doc/current/zookeeperOver.html.
+
+
+Part 1: Setup a development host
+================================
+#. Provision a VM following the procedure in :ref:`Part 1 of Lab No. 2.<lab02-part1>`. Name the virtual machine **lab07**. 
+
+
+Part 2: Getting Started with Zookeeper
+======================================
+
+#. For this part we are going to use the public Zookeeper image (`zookeeper:3.4.13`). SSH into **lab07** and start a Zookeeper container in the in the background and make sure that you expose port 2181.
+
+#. Install pip and the kazoo library
+
+    .. parsed-literal::
+        > sudo apt-get install python3-pip
+        > sudo pip3 install kazoo==2.5.0
+
+#. To test that the installation has been successful, start an interactive Python3 session and try to import `KazooClient` from the `kazoo.client` module:
+
+    .. parsed-literal::
+        > python3
+        Python 3.6.6 (default, Sep 12 2018, 18:26:19)
+        [GCC 8.0.1 20180414 (experimental) [trunk revision 259383]] on linux
+        Type "help", "copyright", "credits" or "license" for more information.
+        >>> from kazoo.client import KazooClient
+        >>>
+
+    If you received an error, that means that the installation of the `kazoo` library was not correct.
+
+
+#. Start a connection to Zookeeper using the KazooClient. Since you started the Zookeeper container and exposed port 2181, we can simply use ``localhost`` as the host to connect.
+
+
+    .. parsed-literal::
+        >>> zk = KazooClient(hosts='localhost:2181')
+        >>> zk.start()
+        >>>
+
+
+
+Part 3: Zookeeper Basic operations
+==================================
+
+As mentioned in the Zookeeper overview (https://zookeeper.apache.org/doc/current/zookeeperOver.html), Zookeeper stores data in a hierarchical data model, similar to a file system. Data is stored in nodes (called *znodes*) which are accessible through a path. Znodes can have values assigned to them, and they can also have children.
+
+#. To create a Znode, we can use the `KazooClient.create` method. The first argument is the path of the znode, and the second is a `bytes` object that will be assigned to the znode as its value. Note that Zookeeper does not have a notion of data types, so you have to make sure that you format the data in a way that can be consumed by your application.
+
+    .. parsed-literal::
+
+        >>> zk.create('/mynode', b'myvalue')
+        '/mynode'
+
+#. You can also create znodes without assigning a value to them:
+
+    .. parsed-literal::
+
+        >>> zk.create('/anothernode')
+        '/anothernode'
+
+
+#. It is important to keep in mind that the parent path needs to exist in order to create a znode. In the previous example, the znode was created at the root (which exists by default). If we try to create a znode whose full path does not exist, we will get a 'NoNodeError'.
+
+
+    .. parsed-literal::
+
+        >>> zk.create('/this/path/doesnot/exist')
+        ...
+        kazoo.exceptions.NoNodeError
+
+
+#. We can use the `KazooClient.ensure_path` method to create a full path (however, this method does not allow to set a value to the leaf znode).
+
+    .. parsed-literal::
+
+        >>> zk.ensure_path('/this/path/doesnot/exist')
+        '/this/path/doesnot/exist'
+
+
+#. The `KazooClient.set` method is used to change the value of an already existing znode
+
+    .. parsed-literal::
+
+        >>> zk.set('/this/path/doesnot/exist', b'101')
+        ZnodeStat(czxid=11, mzxid=12, ctime=1541835416089, mtime=1541835596729, version=1, cversion=0, aversion=0, ephemeralOwner=0, dataLength=3, numChildren=0, pzxid=11)
+
+
+#. To check for the existence of a znode, you can use the `KazooClient.exists` method. If the znode does not exist, the method returns `None`, else it return a `ZnodeStat` object: 
+
+    .. parsed-literal::
+
+        >>> zk.exists('/hello')
+        >>> zk.exists('/mynode')
+        ZnodeStat(czxid=6, mzxid=6, ctime=1541834977502, mtime=1541834977502, version=0, cversion=0, aversion=0, ephemeralOwner=0, dataLength=7, numChildren=0, pzxid=6)
+
+
+#. Let's modify the value of `/mynode` and see the effect on the znode's stats, particularly in the modification time and the version:
+
+
+    .. parsed-literal::
+
+
+        >>> zk.set('/mynode', b'another value')
+        ZnodeStat(czxid=6, mzxid=13, ctime=1541834977502, mtime=1541835871393, version=1, cversion=0, aversion=0, ephemeralOwner=0, dataLength=13, numChildren=0, pzxid=6)
+
+
+#. You can also delete znodes using the `KazooClient.delete` method. Let's delete the `/this/path/doesnot/exist` znode that we created earlier:
+
+    .. parsed-literal::
+        >>> zk.delete('/this/path/doesnot/exist')
+        True
+        >>> zk.exists('/this/path/doesnot/exits')
+
+
+#. We can also call delete using the recursive flag to delete a znode an all it's children:
+
+    .. parsed-literal::
+        >>> zk.delete('/this', recursive=True)
+        >>> zk.exists('/this')
+        >>>
+
+#. Exit out of the python interactive session:
+
+    .. parsed-literal::
+        >>> exit()
+
+
+Part 4: Distributed locks with the Kazoo library
+================================================
+
+For this part, it is assummed that you still have Zookeeper running in a docker container from Part 3.
+
+
+A lock is a mechanism to ensure that only one actor/transactor performs a specific task at a time.  Locks guarantee consistency by preventing race conditions.
+
+Implementation of locks in distributed systems is very complex. Zookeeper provides abstractions that allows implementing a Distributed lock with minimal code. The `kazoo.recipe.Lock` (https://kazoo.readthedocs.io/en/latest/api/recipe/lock.html) class can be used in Python for this purpose.
+
+
+#. To test this create a file called ``updatedb.py`` with the following contents:
+
+    .. literalinclude:: updatedb.py
+
+    This script uses a file named ``database.txt`` to simulate a database where we store a sequential integer.
+
+#. Execute the script, and verify that indeed the file is updated with the expected number:
+
+
+    .. parsed-literal::
+        > python updatedb.py
+        > cat database.txt
+        1000
+
+#. If you execute the script several times, then you will see that the database is updated correctly. For example, if you run the script two more times, a total of 3000 is reflected:
+
+    .. parsed-literal::
+        > python updatedb.py
+        > python updatedb.py
+        > cat database.txt
+        3000
+
+#. Let's introduce a race condition. Create the following ``bash`` script. This script first "resets" the ``database.txt`` file to ``0`` and then runs two instances of the script in parallel:
+
+    .. literalinclude:: run_update.sh
+
+
+#. Run the script (make sure to make it executable before trying to run it).
+
+    .. parsed-literal::
+        > ./run_update.sh
+
+
+#. Inspect the value updated in the ``database.txt`` file. Since we ran two instances of the ``updatedb.py`` script we could have expected to see a value of ``2000`` but you probably obtained a different value. Run the process again and notice how the values saved in ``database.txt`` change every time. This is because there is a race condition caused by two processes running at the same time. Explain the race condition by using a sequence diagram (http://www.tracemodeler.com/articles/a_quick_introduction_to_uml_sequence_diagrams/).
+
+#. In order to guarantee that the ``database.txt`` file, we are going to use a Zookeeper Lock. Modify ``updatedb.py`` according to the following listing:
+
+    .. literalinclude:: updatedbzk.py
+
+    Make sure that you identify and understand the changes made (i.e. do not just copy and paste!!!). Pay particular attention to the difference in the ``update_database()`` function.  The ``get_zookeeper()`` function is just an utility to get a connection to zookeeper; it is good that you understand what is happening there, but the most important changes are in ``update_database()``
+
+#. Remove the ``database.txt`` file and execute that ``updatedb.py`` script (i.e. do not run it through the ``run_update.sh`` script) to make sure that it works. You will notice that this time the script takes several seconds to complete, whereas before it would complete almost immediately.
+
+#. Now, run the ``run_update.sh`` script again, and notice that, albeit it took several seconds more, this time the two processes running in parallel produced the desired result (a final value in ``database.txt`` equal to ``2000``)
+
+
+Part 5: Automating Galera cluster startup with Zookeeper
+========================================================
+
+In this part of the lab, you are going to revisit :ref:`Part 3 of Lab No. 6<lab06-part3>`.  In that lab, we manually started a cluster following the procedure described in http://galeracluster.com/documentation-webpages/startingcluster.html, which in summary consist of the following steps:
+
+To start the first node:
+
+* First, bootstrap the cluster by starting the first node with the ``--wsrep-new-cluster`` option. There are other additional options/arguments that need to be specified as well, but the first node specifically is the only one that can be started with the ``--wsrep-new-cluster`` option
+* Wait until the first node has completed the startup process (which we can verify as when it reports the ``wsrep_cluster_status`` equal to ``Primary``)
+
+To add other nodes to the cluster, repeat this procedure for each node:
+
+* Make sure that there are no other nodes joining the cluster. Only one node can be started at a time.
+* Find out the IP addresses of one of the other nodes that have already joined the cluster (you can use more than one IP address if desired as long as they all belong to nodes that have joined the cluster)
+* Start the node by specifying the IP address that you determined previously in the URL of the ``--wsrep_cluster_address`` argument. You also need to specify a ``--server-id`` that is unique.
+* Wait until the node has finished starting and it reports the ``wsrep_cluster_status`` is equal to ``Primary``
+
+
+Requisites for this part of the lab
+-----------------------------------
+
+#. Download the starter code of this lab from: https://github.com/jcabmora/minibank/archive/week11.zip
+#. Start a kubernetes cluster
+
+
+To implement
+------------
+
+Your task for this part of the lab is to implement the logic in the ``main()`` function of the ``mariadb/clustering.py`` script.
+This function starts the ``mysqld`` daemon in the container. To do this, you need to use zookeeper to bae able to guarantee that only one node starts at a time. You also need zookeeper to keep track of how many other nodes have joined the cluster. For your convenience, the following helper functions are provided:
+
+* ``bootstrap_cluster()``: used to start the first node
+* ``start_node(nodes)``: takes as argument a list of nodes and starts a secondary node
+* ``get_ip_address()``: return the first IP Address of non-loopback interfaces.
+* ``get_zookeeper()``: waits until a zookeeper connection is stablished and returns a ``Kazoo.Client`` object.
+* ``wait_until_primary()``: waits until it can confirm that the node has joing a galera cluster and the ``wsrep_cluster_status`` is reported as ``Primary``
+
+
+To test your code
+-----------------
+To simplify, the ``mariadb/Dockerfile`` and the ``mariadb/docker-entrypoint.sh`` have already been updated to account for the existence of the ``clustering.py`` script as mechanism to start the ``mysqld`` daemon in the container.
+
+To test your changes in a Kubernetes cluster follow these steps
+
+
+#. Build and push an updated image.
+
+    .. parsed-literal::
+        > make push-images
+
+#. start Zookeeper
+
+    .. parsed-literal::
+        > kubectl create -f kubernetes/zookeeper.yaml
+
+#. start the galera cluster:
+
+    .. parsed-literal::
+        > kubectl create -f kubernetes/galera.yaml
+ 
+#. Log into the mysql containers and make sure that the mysql service is up and that the ``wsrep_cluster_status`` is ``Primary``.
+
+#. If the mysql pods are being restarted, inspecting the logs is very useful
+
+    .. parsed-literal::
+        > kubectl logs <name of the pod>
+
+#. To cleanup so you can run another test:
+
+    .. parsed-literal::
+        > kubectl delete deployment,service mysql zookeeper
+
+Note: It is recommended to cleanup zookeeper after every trial since we could be leaving stale data. We are not implementing watchers or ephemeral znodes that could help to avoid the reset of zookeeper.
+
+
+
+.. admonition:: What to turn in
+    :class: worksheet
+
+    #. The sequence diagram from Part 4. If you like, you can simply draw this diagram by hand in a piece of paper, and take a snapshot with a camera and upload the image. You can also create a diagram using any software you prefer, as long as the image that you upload is formatted either as a JPG or a PDF.
+    #. The updated source code for ``mariadb/clustering.py``

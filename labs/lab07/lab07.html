@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Lab No. 7: Distributed Coordination with Zookeeper &#8212; CS385 Cloud Systems Architecture  documentation</title>
+    <link rel="stylesheet" href="../../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="prev" title="Lab No. 6: Relational and Non-Relational Databases" href="../lab06/lab06.html" />
+<link href="https://fonts.googleapis.com/css?family=Lusitana|Inconsolata|Roboto" rel="stylesheet">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../index.html">
+          CS385 Cloud Systems Architecture</a>
+        <span class="navbar-text navbar-version pull-left"><b></b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../syllabus.html">CS385 Cloud Systems Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab01/lab01.html">Lab No. 1: Deploying an Application to Google Cloud</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab02/lab02.html">Lab No. 2: Containers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab03/lab03.html">Lab No. 3 Container Orchestration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab04/lab04.html">Lab No. 4: Scalability and Load Balancing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab05/lab05.html">Lab No. 5: Horizontal Scalability and State</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab06/lab06.html">Lab No. 6: Relational and Non-Relational Databases</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Lab No. 7: Distributed Coordination with Zookeeper</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">Lab No. 7: Distributed Coordination with Zookeeper</a><ul>
+<li><a class="reference internal" href="#prerequisite">Prerequisite</a></li>
+<li><a class="reference internal" href="#part-1-setup-a-development-host">Part 1: Setup a development host</a></li>
+<li><a class="reference internal" href="#part-2-getting-started-with-zookeeper">Part 2: Getting Started with Zookeeper</a></li>
+<li><a class="reference internal" href="#part-3-zookeeper-basic-operations">Part 3: Zookeeper Basic operations</a></li>
+<li><a class="reference internal" href="#part-4-distributed-locks-with-the-kazoo-library">Part 4: Distributed locks with the Kazoo library</a></li>
+<li><a class="reference internal" href="#part-5-automating-galera-cluster-startup-with-zookeeper">Part 5: Automating Galera cluster startup with Zookeeper</a><ul>
+<li><a class="reference internal" href="#requisites-for-this-part-of-the-lab">Requisites for this part of the lab</a></li>
+<li><a class="reference internal" href="#to-implement">To implement</a></li>
+<li><a class="reference internal" href="#to-test-your-code">To test your code</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="../lab06/lab06.html" title="Previous Chapter: Lab No. 6: Relational and Non-Relational Databases"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Lab No. 6: Re...</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../../_sources/labs/lab07/lab07.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="section" id="lab-no-7-distributed-coordination-with-zookeeper">
+<h1>Lab No. 7: Distributed Coordination with Zookeeper<a class="headerlink" href="#lab-no-7-distributed-coordination-with-zookeeper" title="Permalink to this headline">¶</a></h1>
+<p>In this lab we are going to learn how to use Zookeeper to support distributed coordination tasks.</p>
+<div class="section" id="prerequisite">
+<h2>Prerequisite<a class="headerlink" href="#prerequisite" title="Permalink to this headline">¶</a></h2>
+<p>Before starting this lab, make sure that you have read the official overview page, located at <a class="reference external" href="https://zookeeper.apache.org/doc/current/zookeeperOver.html">https://zookeeper.apache.org/doc/current/zookeeperOver.html</a>.</p>
+</div>
+<div class="section" id="part-1-setup-a-development-host">
+<h2>Part 1: Setup a development host<a class="headerlink" href="#part-1-setup-a-development-host" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li>Provision a VM following the procedure in <a class="reference internal" href="../lab02/lab02.html#lab02-part1"><span class="std std-ref">Part 1 of Lab No. 2.</span></a>. Name the virtual machine <strong>lab07</strong>.</li>
+</ol>
+</div>
+<div class="section" id="part-2-getting-started-with-zookeeper">
+<h2>Part 2: Getting Started with Zookeeper<a class="headerlink" href="#part-2-getting-started-with-zookeeper" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic">
+<li><p class="first">For this part we are going to use the public Zookeeper image (<cite>zookeeper:3.4.13</cite>). SSH into <strong>lab07</strong> and start a Zookeeper container in the in the background and make sure that you expose port 2181.</p>
+</li>
+<li><p class="first">Install pip and the kazoo library</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">python3</span><span class="o">-</span><span class="n">pip</span>
+<span class="o">&gt;</span> <span class="n">sudo</span> <span class="n">pip3</span> <span class="n">install</span> <span class="n">kazoo</span><span class="o">==</span><span class="mf">2.5</span><span class="o">.</span><span class="mi">0</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">To test that the installation has been successful, start an interactive Python3 session and try to import <cite>KazooClient</cite> from the <cite>kazoo.client</cite> module:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">python3</span>
+<span class="n">Python</span> <span class="mf">3.6</span><span class="o">.</span><span class="mi">6</span> <span class="p">(</span><span class="n">default</span><span class="p">,</span> <span class="n">Sep</span> <span class="mi">12</span> <span class="mi">2018</span><span class="p">,</span> <span class="mi">18</span><span class="p">:</span><span class="mi">26</span><span class="p">:</span><span class="mi">19</span><span class="p">)</span>
+<span class="p">[</span><span class="n">GCC</span> <span class="mf">8.0</span><span class="o">.</span><span class="mi">1</span> <span class="mi">20180414</span> <span class="p">(</span><span class="n">experimental</span><span class="p">)</span> <span class="p">[</span><span class="n">trunk</span> <span class="n">revision</span> <span class="mi">259383</span><span class="p">]]</span> <span class="n">on</span> <span class="n">linux</span>
+<span class="n">Type</span> <span class="s2">&quot;help&quot;</span><span class="p">,</span> <span class="s2">&quot;copyright&quot;</span><span class="p">,</span> <span class="s2">&quot;credits&quot;</span> <span class="ow">or</span> <span class="s2">&quot;license&quot;</span> <span class="k">for</span> <span class="n">more</span> <span class="n">information</span><span class="o">.</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">kazoo.client</span> <span class="k">import</span> <span class="n">KazooClient</span>
+<span class="o">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+<p>If you received an error, that means that the installation of the <cite>kazoo</cite> library was not correct.</p>
+</div></blockquote>
+</li>
+<li><p class="first">Start a connection to Zookeeper using the KazooClient. Since you started the Zookeeper container and exposed port 2181, we can simply use <code class="docutils literal"><span class="pre">localhost</span></code> as the host to connect.</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">zk</span> <span class="o">=</span> <span class="n">KazooClient</span><span class="p">(</span><span class="n">hosts</span><span class="o">=</span><span class="s1">&#39;localhost:2181&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">zk</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ol>
+</div>
+<div class="section" id="part-3-zookeeper-basic-operations">
+<h2>Part 3: Zookeeper Basic operations<a class="headerlink" href="#part-3-zookeeper-basic-operations" title="Permalink to this headline">¶</a></h2>
+<p>As mentioned in the Zookeeper overview (<a class="reference external" href="https://zookeeper.apache.org/doc/current/zookeeperOver.html">https://zookeeper.apache.org/doc/current/zookeeperOver.html</a>), Zookeeper stores data in a hierarchical data model, similar to a file system. Data is stored in nodes (called <em>znodes</em>) which are accessible through a path. Znodes can have values assigned to them, and they can also have children.</p>
+<ol class="arabic">
+<li><p class="first">To create a Znode, we can use the <cite>KazooClient.create</cite> method. The first argument is the path of the znode, and the second is a <cite>bytes</cite> object that will be assigned to the znode as its value. Note that Zookeeper does not have a notion of data types, so you have to make sure that you format the data in a way that can be consumed by your application.</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">zk</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s1">&#39;/mynode&#39;</span><span class="p">,</span> <span class="sa">b</span><span class="s1">&#39;myvalue&#39;</span><span class="p">)</span>
+<span class="go">&#39;/mynode&#39;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">You can also create znodes without assigning a value to them:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">zk</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s1">&#39;/anothernode&#39;</span><span class="p">)</span>
+<span class="go">&#39;/anothernode&#39;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">It is important to keep in mind that the parent path needs to exist in order to create a znode. In the previous example, the znode was created at the root (which exists by default). If we try to create a znode whose full path does not exist, we will get a ‘NoNodeError’.</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">zk</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="s1">&#39;/this/path/doesnot/exist&#39;</span><span class="p">)</span>
+<span class="gp">...</span>
+<span class="go">kazoo.exceptions.NoNodeError</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">We can use the <cite>KazooClient.ensure_path</cite> method to create a full path (however, this method does not allow to set a value to the leaf znode).</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">zk</span><span class="o">.</span><span class="n">ensure_path</span><span class="p">(</span><span class="s1">&#39;/this/path/doesnot/exist&#39;</span><span class="p">)</span>
+<span class="go">&#39;/this/path/doesnot/exist&#39;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">The <cite>KazooClient.set</cite> method is used to change the value of an already existing znode</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">zk</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;/this/path/doesnot/exist&#39;</span><span class="p">,</span> <span class="sa">b</span><span class="s1">&#39;101&#39;</span><span class="p">)</span>
+<span class="go">ZnodeStat(czxid=11, mzxid=12, ctime=1541835416089, mtime=1541835596729, version=1, cversion=0, aversion=0, ephemeralOwner=0, dataLength=3, numChildren=0, pzxid=11)</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">To check for the existence of a znode, you can use the <cite>KazooClient.exists</cite> method. If the znode does not exist, the method returns <cite>None</cite>, else it return a <cite>ZnodeStat</cite> object:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">zk</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s1">&#39;/hello&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">zk</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s1">&#39;/mynode&#39;</span><span class="p">)</span>
+<span class="go">ZnodeStat(czxid=6, mzxid=6, ctime=1541834977502, mtime=1541834977502, version=0, cversion=0, aversion=0, ephemeralOwner=0, dataLength=7, numChildren=0, pzxid=6)</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Let’s modify the value of <cite>/mynode</cite> and see the effect on the znode’s stats, particularly in the modification time and the version:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">zk</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;/mynode&#39;</span><span class="p">,</span> <span class="sa">b</span><span class="s1">&#39;another value&#39;</span><span class="p">)</span>
+<span class="go">ZnodeStat(czxid=6, mzxid=13, ctime=1541834977502, mtime=1541835871393, version=1, cversion=0, aversion=0, ephemeralOwner=0, dataLength=13, numChildren=0, pzxid=6)</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">You can also delete znodes using the <cite>KazooClient.delete</cite> method. Let’s delete the <cite>/this/path/doesnot/exist</cite> znode that we created earlier:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">zk</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s1">&#39;/this/path/doesnot/exist&#39;</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">zk</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s1">&#39;/this/path/doesnot/exits&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">We can also call delete using the recursive flag to delete a znode an all it’s children:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">zk</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s1">&#39;/this&#39;</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">zk</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s1">&#39;/this&#39;</span><span class="p">)</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Exit out of the python interactive session:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">exit</span><span class="p">()</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ol>
+</div>
+<div class="section" id="part-4-distributed-locks-with-the-kazoo-library">
+<h2>Part 4: Distributed locks with the Kazoo library<a class="headerlink" href="#part-4-distributed-locks-with-the-kazoo-library" title="Permalink to this headline">¶</a></h2>
+<p>For this part, it is assummed that you still have Zookeeper running in a docker container from Part 3.</p>
+<p>A lock is a mechanism to ensure that only one actor/transactor performs a specific task at a time.  Locks guarantee consistency by preventing race conditions.</p>
+<p>Implementation of locks in distributed systems is very complex. Zookeeper provides abstractions that allows implementing a Distributed lock with minimal code. The <cite>kazoo.recipe.Lock</cite> (<a class="reference external" href="https://kazoo.readthedocs.io/en/latest/api/recipe/lock.html">https://kazoo.readthedocs.io/en/latest/api/recipe/lock.html</a>) class can be used in Python for this purpose.</p>
+<ol class="arabic">
+<li><p class="first">To test this create a file called <code class="docutils literal"><span class="pre">updatedb.py</span></code> with the following contents:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">errno</span>
+
+
+<span class="k">def</span> <span class="nf">update_database</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reads the current value in the database, and adds one to that value, and saves it to disk</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;database.txt&#39;</span><span class="p">,</span> <span class="s1">&#39;r+&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">database</span><span class="p">:</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="n">database</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">content</span><span class="p">:</span> 
+            <span class="n">value</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">value</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">database</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">database</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+
+    <span class="c1"># Create the database if it does not exist:</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;database.txt&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">exc</span><span class="o">.</span><span class="n">errno</span> <span class="o">==</span> <span class="n">errno</span><span class="o">.</span><span class="n">ENOENT</span><span class="p">:</span>
+            <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;database.txt&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        
+    <span class="c1"># update the database a thousand times</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span> <span class="p">(</span><span class="mi">1000</span><span class="p">):</span>
+        <span class="n">update_database</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This script uses a file named <code class="docutils literal"><span class="pre">database.txt</span></code> to simulate a database where we store a sequential integer.</p>
+</div></blockquote>
+</li>
+<li><p class="first">Execute the script, and verify that indeed the file is updated with the expected number:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">python</span> <span class="n">updatedb</span><span class="o">.</span><span class="n">py</span>
+<span class="o">&gt;</span> <span class="n">cat</span> <span class="n">database</span><span class="o">.</span><span class="n">txt</span>
+<span class="mi">1000</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">If you execute the script several times, then you will see that the database is updated correctly. For example, if you run the script two more times, a total of 3000 is reflected:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">python</span> <span class="n">updatedb</span><span class="o">.</span><span class="n">py</span>
+<span class="o">&gt;</span> <span class="n">python</span> <span class="n">updatedb</span><span class="o">.</span><span class="n">py</span>
+<span class="o">&gt;</span> <span class="n">cat</span> <span class="n">database</span><span class="o">.</span><span class="n">txt</span>
+<span class="mi">3000</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Let’s introduce a race condition. Create the following <code class="docutils literal"><span class="pre">bash</span></code> script. This script first “resets” the <code class="docutils literal"><span class="pre">database.txt</span></code> file to <code class="docutils literal"><span class="pre">0</span></code> and then runs two instances of the script in parallel:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash</span>
+
+<span class="n">echo</span> <span class="s2">&quot;0&quot;</span> <span class="o">&gt;</span> <span class="n">database</span><span class="o">.</span><span class="n">txt</span>
+
+<span class="n">python</span> <span class="n">updatedb</span><span class="o">.</span><span class="n">py</span> <span class="o">&amp;</span> <span class="n">python</span> <span class="n">updatedb</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Run the script (make sure to make it executable before trying to run it).</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="o">./</span><span class="n">run_update</span><span class="o">.</span><span class="n">sh</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Inspect the value updated in the <code class="docutils literal"><span class="pre">database.txt</span></code> file. Since we ran two instances of the <code class="docutils literal"><span class="pre">updatedb.py</span></code> script we could have expected to see a value of <code class="docutils literal"><span class="pre">2000</span></code> but you probably obtained a different value. Run the process again and notice how the values saved in <code class="docutils literal"><span class="pre">database.txt</span></code> change every time. This is because there is a race condition caused by two processes running at the same time. Explain the race condition by using a sequence diagram (<a class="reference external" href="http://www.tracemodeler.com/articles/a_quick_introduction_to_uml_sequence_diagrams/">http://www.tracemodeler.com/articles/a_quick_introduction_to_uml_sequence_diagrams/</a>).</p>
+</li>
+<li><p class="first">In order to guarantee that the <code class="docutils literal"><span class="pre">database.txt</span></code> file, we are going to use a Zookeeper Lock. Modify <code class="docutils literal"><span class="pre">updatedb.py</span></code> according to the following listing:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">kazoo.client</span> <span class="k">import</span> <span class="n">KazooClient</span>
+<span class="kn">from</span> <span class="nn">kazoo.retry</span> <span class="k">import</span> <span class="n">KazooRetry</span>
+
+<span class="n">LOCK</span> <span class="o">=</span> <span class="s1">&#39;/dbupdate&#39;</span>
+
+
+<span class="k">def</span> <span class="nf">get_zookeeper</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Waits and returns a connection to a Zookeeper running in localhost:2181</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">hosts</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;localhost&#39;</span><span class="p">]</span>
+
+    <span class="c1"># wait forever or until a connection is successful</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">client</span> <span class="o">=</span> <span class="n">KazooClient</span><span class="p">(</span><span class="n">hosts</span><span class="o">=</span><span class="n">hosts</span><span class="p">,</span> <span class="n">connection_retry</span><span class="o">=</span><span class="n">KazooRetry</span><span class="p">(</span><span class="n">max_tries</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">max_delay</span><span class="o">=</span><span class="mi">3</span><span class="p">))</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">client</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="c1"># we should probably handle different types of exceptions with different sleep times.</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span>
+            <span class="k">raise</span>
+        <span class="k">return</span> <span class="n">client</span>
+
+
+<span class="k">def</span> <span class="nf">update_database</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Waits until it acquires a lock in Zookeeper and then proceeds to update the database file</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">lock</span> <span class="o">=</span> <span class="n">zk</span><span class="o">.</span><span class="n">Lock</span><span class="p">(</span><span class="n">LOCK</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">lock</span><span class="o">.</span><span class="n">acquire</span><span class="p">()</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;database.txt&#39;</span><span class="p">,</span> <span class="s1">&#39;r+&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">database</span><span class="p">:</span>
+            <span class="n">content</span> <span class="o">=</span> <span class="n">database</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">content</span><span class="p">:</span> 
+                <span class="n">value</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">value</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">database</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">database</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">lock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+
+    <span class="c1"># there is actually a potential race condition in this snippet that creates the file.</span>
+    <span class="c1"># We avoid it by initializing the file in the calling bash script.</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;database.txt&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">exc</span><span class="o">.</span><span class="n">errno</span> <span class="o">==</span> <span class="n">errno</span><span class="o">.</span><span class="n">ENOENT</span><span class="p">:</span>
+            <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;database.txt&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">zk</span> <span class="o">=</span> <span class="n">get_zookeeper</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span> <span class="p">(</span><span class="mi">1000</span><span class="p">):</span>
+            <span class="n">update_database</span><span class="p">()</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">zk</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+
+</pre></div>
+</div>
+<p>Make sure that you identify and understand the changes made (i.e. do not just copy and paste!!!). Pay particular attention to the difference in the <code class="docutils literal"><span class="pre">update_database()</span></code> function.  The <code class="docutils literal"><span class="pre">get_zookeeper()</span></code> function is just an utility to get a connection to zookeeper; it is good that you understand what is happening there, but the most important changes are in <code class="docutils literal"><span class="pre">update_database()</span></code></p>
+</div></blockquote>
+</li>
+<li><p class="first">Remove the <code class="docutils literal"><span class="pre">database.txt</span></code> file and execute that <code class="docutils literal"><span class="pre">updatedb.py</span></code> script (i.e. do not run it through the <code class="docutils literal"><span class="pre">run_update.sh</span></code> script) to make sure that it works. You will notice that this time the script takes several seconds to complete, whereas before it would complete almost immediately.</p>
+</li>
+<li><p class="first">Now, run the <code class="docutils literal"><span class="pre">run_update.sh</span></code> script again, and notice that, albeit it took several seconds more, this time the two processes running in parallel produced the desired result (a final value in <code class="docutils literal"><span class="pre">database.txt</span></code> equal to <code class="docutils literal"><span class="pre">2000</span></code>)</p>
+</li>
+</ol>
+</div>
+<div class="section" id="part-5-automating-galera-cluster-startup-with-zookeeper">
+<h2>Part 5: Automating Galera cluster startup with Zookeeper<a class="headerlink" href="#part-5-automating-galera-cluster-startup-with-zookeeper" title="Permalink to this headline">¶</a></h2>
+<p>In this part of the lab, you are going to revisit <a class="reference internal" href="../lab06/lab06.html#lab06-part3"><span class="std std-ref">Part 3 of Lab No. 6</span></a>.  In that lab, we manually started a cluster following the procedure described in <a class="reference external" href="http://galeracluster.com/documentation-webpages/startingcluster.html">http://galeracluster.com/documentation-webpages/startingcluster.html</a>, which in summary consist of the following steps:</p>
+<p>To start the first node:</p>
+<ul class="simple">
+<li>First, bootstrap the cluster by starting the first node with the <code class="docutils literal"><span class="pre">--wsrep-new-cluster</span></code> option. There are other additional options/arguments that need to be specified as well, but the first node specifically is the only one that can be started with the <code class="docutils literal"><span class="pre">--wsrep-new-cluster</span></code> option</li>
+<li>Wait until the first node has completed the startup process (which we can verify as when it reports the <code class="docutils literal"><span class="pre">wsrep_cluster_status</span></code> equal to <code class="docutils literal"><span class="pre">Primary</span></code>)</li>
+</ul>
+<p>To add other nodes to the cluster, repeat this procedure for each node:</p>
+<ul class="simple">
+<li>Make sure that there are no other nodes joining the cluster. Only one node can be started at a time.</li>
+<li>Find out the IP addresses of one of the other nodes that have already joined the cluster (you can use more than one IP address if desired as long as they all belong to nodes that have joined the cluster)</li>
+<li>Start the node by specifying the IP address that you determined previously in the URL of the <code class="docutils literal"><span class="pre">--wsrep_cluster_address</span></code> argument. You also need to specify a <code class="docutils literal"><span class="pre">--server-id</span></code> that is unique.</li>
+<li>Wait until the node has finished starting and it reports the <code class="docutils literal"><span class="pre">wsrep_cluster_status</span></code> is equal to <code class="docutils literal"><span class="pre">Primary</span></code></li>
+</ul>
+<div class="section" id="requisites-for-this-part-of-the-lab">
+<h3>Requisites for this part of the lab<a class="headerlink" href="#requisites-for-this-part-of-the-lab" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li>Download the starter code of this lab from: <a class="reference external" href="https://github.com/jcabmora/minibank/archive/week11.zip">https://github.com/jcabmora/minibank/archive/week11.zip</a></li>
+<li>Start a kubernetes cluster</li>
+</ol>
+</div>
+<div class="section" id="to-implement">
+<h3>To implement<a class="headerlink" href="#to-implement" title="Permalink to this headline">¶</a></h3>
+<p>Your task for this part of the lab is to implement the logic in the <code class="docutils literal"><span class="pre">main()</span></code> function of the <code class="docutils literal"><span class="pre">mariadb/clustering.py</span></code> script.
+This function starts the <code class="docutils literal"><span class="pre">mysqld</span></code> daemon in the container. To do this, you need to use zookeeper to bae able to guarantee that only one node starts at a time. You also need zookeeper to keep track of how many other nodes have joined the cluster. For your convenience, the following helper functions are provided:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">bootstrap_cluster()</span></code>: used to start the first node</li>
+<li><code class="docutils literal"><span class="pre">start_node(nodes)</span></code>: takes as argument a list of nodes and starts a secondary node</li>
+<li><code class="docutils literal"><span class="pre">get_ip_address()</span></code>: return the first IP Address of non-loopback interfaces.</li>
+<li><code class="docutils literal"><span class="pre">get_zookeeper()</span></code>: waits until a zookeeper connection is stablished and returns a <code class="docutils literal"><span class="pre">Kazoo.Client</span></code> object.</li>
+<li><code class="docutils literal"><span class="pre">wait_until_primary()</span></code>: waits until it can confirm that the node has joing a galera cluster and the <code class="docutils literal"><span class="pre">wsrep_cluster_status</span></code> is reported as <code class="docutils literal"><span class="pre">Primary</span></code></li>
+</ul>
+</div>
+<div class="section" id="to-test-your-code">
+<h3>To test your code<a class="headerlink" href="#to-test-your-code" title="Permalink to this headline">¶</a></h3>
+<p>To simplify, the <code class="docutils literal"><span class="pre">mariadb/Dockerfile</span></code> and the <code class="docutils literal"><span class="pre">mariadb/docker-entrypoint.sh</span></code> have already been updated to account for the existence of the <code class="docutils literal"><span class="pre">clustering.py</span></code> script as mechanism to start the <code class="docutils literal"><span class="pre">mysqld</span></code> daemon in the container.</p>
+<p>To test your changes in a Kubernetes cluster follow these steps</p>
+<ol class="arabic">
+<li><p class="first">Build and push an updated image.</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">make</span> <span class="n">push</span><span class="o">-</span><span class="n">images</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">start Zookeeper</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">kubectl</span> <span class="n">create</span> <span class="o">-</span><span class="n">f</span> <span class="n">kubernetes</span><span class="o">/</span><span class="n">zookeeper</span><span class="o">.</span><span class="n">yaml</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">start the galera cluster:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">kubectl</span> <span class="n">create</span> <span class="o">-</span><span class="n">f</span> <span class="n">kubernetes</span><span class="o">/</span><span class="n">galera</span><span class="o">.</span><span class="n">yaml</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Log into the mysql containers and make sure that the mysql service is up and that the <code class="docutils literal"><span class="pre">wsrep_cluster_status</span></code> is <code class="docutils literal"><span class="pre">Primary</span></code>.</p>
+</li>
+<li><p class="first">If the mysql pods are being restarted, inspecting the logs is very useful</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">kubectl</span> <span class="n">logs</span> <span class="o">&lt;</span><span class="n">name</span> <span class="n">of</span> <span class="n">the</span> <span class="n">pod</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">To cleanup so you can run another test:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">kubectl</span> <span class="n">delete</span> <span class="n">deployment</span><span class="p">,</span><span class="n">service</span> <span class="n">mysql</span> <span class="n">zookeeper</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ol>
+<p>Note: It is recommended to cleanup zookeeper after every trial since we could be leaving stale data. We are not implementing watchers or ephemeral znodes that could help to avoid the reset of zookeeper.</p>
+<div class="worksheet admonition">
+<p class="first admonition-title">What to turn in</p>
+<ol class="last arabic simple">
+<li>The sequence diagram from Part 4. If you like, you can simply draw this diagram by hand in a piece of paper, and take a snapshot with a camera and upload the image. You can also create a diagram using any software you prefer, as long as the image that you upload is formatted either as a JPG or a PDF.</li>
+<li>The updated source code for <code class="docutils literal"><span class="pre">mariadb/clustering.py</span></code></li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

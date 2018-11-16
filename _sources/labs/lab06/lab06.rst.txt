@@ -77,6 +77,8 @@ When executing this target, you can use the ``REPLICAS`` argument to provide a s
     This command will take a few minutes. It will scale the ``minibank`` deployment to first run with 1 replica, run a series of AB tests and collect the results, and then will scale to 3 replicas and repeat. You can open the ``load_test/collect.py`` to review the script.  The make file calls this script and specifies to use the ``api/account/login`` endpoint. Since this endpoint **writes** to the database, this is a **WRITE** performance test.
 
 
+.. _lab06-part3:
+
 Part 3: Deployment of a clustered SQL database
 ==============================================
 
