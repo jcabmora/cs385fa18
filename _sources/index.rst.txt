@@ -18,6 +18,7 @@ Welcome to CS385 Cloud Systems Architecture!
    labs/lab05/lab05
    labs/lab06/lab06
    labs/lab07/lab07
+   labs/lab08/lab08
 
 Indices and tables
 ==================

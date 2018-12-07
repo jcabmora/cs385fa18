@@ -70,6 +70,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../lab05/lab05.html">Lab No. 5: Horizontal Scalability and State</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../lab06/lab06.html">Lab No. 6: Relational and Non-Relational Databases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../lab07/lab07.html">Lab No. 7: Distributed Coordination with Zookeeper</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab08/lab08.html">Lab No. 08: Event-Driven Processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab08/lab08.html#preamble">Preamble</a></li>
 </ul>
 </ul>
 </li>
@@ -174,7 +176,8 @@
 </li>
 <li><p class="first">SSH into the docker-01 host, install docker and the current user to the <code class="docutils literal"><span class="pre">docker</span></code> user group:</p>
 <blockquote>
-<div><div class="highlight-default"><div class="highlight"><pre><span></span>&gt; sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+<div><div class="highlight-default"><div class="highlight"><pre><span></span>&gt; sudo apt-get update
+&gt; sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
 &gt; curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
 &gt; sudo add-apt-repository &quot;deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable&quot;
 &gt; sudo apt-get update
@@ -195,7 +198,7 @@
 <p>Make sure that you read an understand the output of the last command.</p>
 </div>
 <div class="section" id="part-2-run-applications-in-docker">
-<h2>Part 2: Run applications in Docker<a class="headerlink" href="#part-2-run-applications-in-docker" title="Permalink to this headline">¶</a></h2>
+<span id="lab02-part2"></span><h2>Part 2: Run applications in Docker<a class="headerlink" href="#part-2-run-applications-in-docker" title="Permalink to this headline">¶</a></h2>
 <p>In this part of the lab you are going to build and deploy applications in docker containers. You need to be logged into the Virtual Machine that was created on Part 1 (<code class="docutils literal"><span class="pre">docker-01</span></code>) to complete the steps of this lab,</p>
 <ol class="arabic">
 <li><p class="first">We are going to run Kafka and Zookeeper in docker containers.  Create a directory called <code class="docutils literal"><span class="pre">kafka</span></code> in your home(<code class="docutils literal"><span class="pre">~</span></code>) directory, and change into it. Create a <code class="docutils literal"><span class="pre">Dockerfile</span></code> with the following content:</p>
@@ -389,7 +392,7 @@ root&#64;6a76c10946f9:/opt# kafka/bin/kafka-console-consumer.sh --bootstrap-serv
 </ol>
 </div>
 <div class="section" id="part-4-building-a-python-app">
-<h2>Part 4: Building a Python App<a class="headerlink" href="#part-4-building-a-python-app" title="Permalink to this headline">¶</a></h2>
+<span id="lab02-part4"></span><h2>Part 4: Building a Python App<a class="headerlink" href="#part-4-building-a-python-app" title="Permalink to this headline">¶</a></h2>
 <p>In this section we are going to learn how to interact with Kafka programatically using the <a class="reference external" href="https://github.com/Parsely/pykafka">pykafka</a> python library.
 We are going to create a simple app that exposes a REST API that receives messages and writes them to Kafka topics.  We are then going to create another app that consumes those messages.</p>
 <ol class="arabic">

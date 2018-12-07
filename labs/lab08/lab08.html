@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Lab No. 08: Event-Driven Processing &#8212; CS385 Cloud Systems Architecture  documentation</title>
+    <link rel="stylesheet" href="../../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="prev" title="Lab No. 7: Distributed Coordination with Zookeeper" href="../lab07/lab07.html" />
+<link href="https://fonts.googleapis.com/css?family=Lusitana|Inconsolata|Roboto" rel="stylesheet">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../index.html">
+          CS385 Cloud Systems Architecture</a>
+        <span class="navbar-text navbar-version pull-left"><b></b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../syllabus.html">CS385 Cloud Systems Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab01/lab01.html">Lab No. 1: Deploying an Application to Google Cloud</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab02/lab02.html">Lab No. 2: Containers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab03/lab03.html">Lab No. 3 Container Orchestration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab04/lab04.html">Lab No. 4: Scalability and Load Balancing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab05/lab05.html">Lab No. 5: Horizontal Scalability and State</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab06/lab06.html">Lab No. 6: Relational and Non-Relational Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../lab07/lab07.html">Lab No. 7: Distributed Coordination with Zookeeper</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Lab No. 08: Event-Driven Processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#preamble">Preamble</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#part-1-set-up-host-and-kafka-image">Part 1: Set Up Host and Kafka Image</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#part-2-a-simple-websockets-chat-application">Part 2: A simple websockets chat application</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#enhancing-the-websockets-application-to-use-a-message-broker">Enhancing the Websockets Application to use a Message Broker</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">Lab No. 08: Event-Driven Processing</a></li>
+<li><a class="reference internal" href="#preamble">Preamble</a><ul>
+<li><a class="reference internal" href="#intro-to-apache-kafka">Intro to Apache Kafka</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#part-1-set-up-host-and-kafka-image">Part 1: Set Up Host and Kafka Image</a><ul>
+<li><a class="reference internal" href="#writing-to-kafka-with-go">Writing to Kafka with Go</a></li>
+<li><a class="reference internal" href="#reading-from-kafka-with-go">Reading from Kafka with Go</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#part-2-a-simple-websockets-chat-application">Part 2: A simple websockets chat application</a></li>
+<li><a class="reference internal" href="#enhancing-the-websockets-application-to-use-a-message-broker">Enhancing the Websockets Application to use a Message Broker</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="../lab07/lab07.html" title="Previous Chapter: Lab No. 7: Distributed Coordination with Zookeeper"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Lab No. 7: Di...</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../../_sources/labs/lab08/lab08.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12 content">
+      
+  <div class="section" id="lab-no-08-event-driven-processing">
+<h1>Lab No. 08: Event-Driven Processing<a class="headerlink" href="#lab-no-08-event-driven-processing" title="Permalink to this headline">¶</a></h1>
+<p>In this lab we are going to learn to use Apache Kafka to implement some common Event-Driven batch processing patterns.
+We are going to first learn to interact with kafka with go.
+We will then go through several stages to deploy a Websockets based Chat application that will suffer from scalability problems.
+We will then use kafka to make the application horizotally scalable by means of applying the publisher/subscriber architectural pattern.</p>
+<p>The detailed goals of this lab are:</p>
+<ul class="simple">
+<li>Understand the publisher/subscriber pattern as a mechanism to deliver event driven processing</li>
+<li>Learn the basics of producing and consuming messages from Apacke Kafka</li>
+<li>Learn how to interact with Apache Kafka in a programmatic way with go</li>
+<li>Create a Websockets Chat application</li>
+<li>Apply the publisher/subscriber pattern to enable horizontal scalability</li>
+</ul>
+</div>
+<div class="section" id="preamble">
+<h1>Preamble<a class="headerlink" href="#preamble" title="Permalink to this headline">¶</a></h1>
+<p>Imagine you have a service that requires a long running process to be executed for every request that it receives.
+The consumers of your service do not expect it to provide an immediate response, and instead they expect it to <em>eventually</em> complete the work. Some cases where this scenario applies:</p>
+<ul class="simple">
+<li><dl class="first docutils">
+<dt>A service to place and fulfill stock market orders:</dt>
+<dd>In this case, an user places an order, but evidently, the service can’t complete until it has found a seller that is willing to sell the requested stock.
+This is an over-simplification since there are many parameters that could be specified when buying/selling stock, but what matters is the fact that we can’t possibly guarantee an immediate response since fulfilling a stock order depends on external factors.</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>A service that takes electronic documents and faxes them:</dt>
+<dd>In this case you need to complete several work items: first you need to validate the input and convert it to a format that is suitable for faxing, second you have to perform the actual faxing of the document with the catch that the line might be busy (welcome to the 90s!), and third, you most likely want to send some kind of notification to the sender to confirm the success/failure of the request.</dd>
+</dl>
+</li>
+</ul>
+<p>Examples like the above, when you need to <em>defer</em> the execution of business logic, are even more common when you implement distributed architectures where multiple “small” individual services with reduced responsibilities are used to compose a larger service.
+Since networks are unreliable, instead of using synchronous code execution done through remote procedure calls (e.g. Rest API), in many cases it is preferable to have these individual “small” components queue up notifications to other components in order to trigger other logic/work by other components.
+Using an event driven workflow is a common pattern used to decompose larger components into two or more smaller components.</p>
+<p>As an example, imagine a process to reset forgotten passwords.  A very common pattern relies on sending an email with a link to the verified email address of the user that is requesting his/her password to be reset.
+You could implement the process in a single component (identified in the following diagram as <em>Password Reset Service</em>) that takes the request from the user, then validates the submitted information and then contacts an SMTP server (<a class="reference external" href="https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol">https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol</a>) to relay the message to the destination mailbox, and after this sends a response to the client:</p>
+<blockquote>
+<div><img alt="../../_images/resetemail.png" class="align-center" src="../../_images/resetemail.png" />
+</div></blockquote>
+<p>This approach has the following limitations:</p>
+<ul class="simple">
+<li>Each request will take a long time to be served due to all the possible delays that could be caused by the interaction wit the SMTP relay.</li>
+<li>Furthermore, requests could fail due to the SMTP relay being unavailable.</li>
+<li>If you have multiple applications in your infrastructure that can trigger sending of emails (for other purposes other than resettign passwords), you will have to properly implement the logic to send email, and manage the SMPT relay configuration of each one of them (e.g the SMTP relay connection details and authentication).</li>
+</ul>
+<p>Consider instead an approach that is presented in the following illustration:</p>
+<blockquote>
+<div><img alt="../../_images/resetemail2.png" class="align-center" src="../../_images/resetemail2.png" />
+</div></blockquote>
+<p>There is now a component (<em>SMTP Agent</em>) whose only responsibility is to manage all aspects of sending emails.
+In order for your internal applications/services to send emails, they need now to communicate in some way with the <em>SMTP Agent</em>.
+We could have the <em>SMTP Agent</em> implement a REST API that other services could use to invoke the action of sending an email; however, if you look closely, this would not remedy any of the problems that we pointed out before, and, on the contrary, it will actually make them worse since now there is an addional data exchange that needs to happen internally when a user requests to reset his password.</p>
+<p>To solve this problem, we put a <em>buffer</em> of work to be done in front of <em>SMTP Agent</em>.
+Email messages that need to be sent are written to a queue, and the <em>SMTP Agent</em> will fetch them only when it is not busy, and remove them only once it has been able to confirm that the email request has been submitted by the SMTP Relay.
+By using this approach, we make the interaction with the SMTP Relay <strong>asynchronous</strong>.
+Assuming that the writes to that message queue are fast, our <em>Password Reset</em> service will be fast, since it does not have to wait for any interaction with the SMTP Relay.
+If the SMTP relay is down, the <em>Password Reset Service</em> will not be affected. Last, any application that wants to send emails could do so by simply knowing to which message queue to write.</p>
+<p>In the previous example we have increased the overall complexity of our system because we have added two additional elements (the message queue and the SMTP Agent), but we have gained in terms of proving a service that is faster to respond and will be more reliable (assuming, of course, that the service that provides the queueing mechanism is fast and more reliable that an SMTP Relay).
+We also gain in making our system easier to configure and easier to mantain, since now we need to mantain SMTP relay configuration only on one component, and we only have to implement logic to interact with SMTP in one place, instead of potentially many of internal services.</p>
+<div class="section" id="intro-to-apache-kafka">
+<h2>Intro to Apache Kafka<a class="headerlink" href="#intro-to-apache-kafka" title="Permalink to this headline">¶</a></h2>
+<p>Apache Kafka is an open-source stream processing platform.
+The official documentation provides an excellent introduction to Apache Kafka.
+Instead of reproducing that information here, go to  <a class="reference external" href="https://kafka.apache.org/intro">https://kafka.apache.org/intro</a>.
+Make sure that you read that document, and that you have a good understanding of the following concepts:</p>
+<ul class="simple">
+<li>Topic</li>
+<li>Producers</li>
+<li>Consumers</li>
+</ul>
+<p>For this lab you don’t need to understand what Partitions and Replicas in a Kafka context.
+Those are very important features that set Kafka apart from other messaging tools. However, in order to keep things simple in this lab, we are going to use a standalone Kafka broker running in a Docker container.</p>
+</div>
+</div>
+<div class="section" id="part-1-set-up-host-and-kafka-image">
+<h1>Part 1: Set Up Host and Kafka Image<a class="headerlink" href="#part-1-set-up-host-and-kafka-image" title="Permalink to this headline">¶</a></h1>
+<ol class="arabic">
+<li><p class="first">Provision a VM and a kubernetes cluster following the same procedure that you have used on previous labs.(<a class="reference internal" href="../lab03/lab03.html#lab03-part1"><span class="std std-ref">Part 1 of Lab No. 3.</span></a>). Name the VM <strong>lab08</strong>.</p>
+</li>
+<li><p class="first">Log into <strong>lab08</strong>.</p>
+</li>
+<li><p class="first">Create a Dockerfile to run Kafka using the following content (which is an optimized version of the Dockerfile that was assigned in Lab2):</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span>FROM openjdk:8-jre-alpine
+
+ENV KAFKA_VERSION=1.0.0 \
+    KAFKA_SCALA_VERSION=2.11 \
+    KAFKA_HOME=/opt/kafka
+ENV KAFKA_ARCH=&quot;kafka_$KAFKA_SCALA_VERSION-$KAFKA_VERSION.tgz&quot;
+
+WORKDIR /opt
+
+RUN apk add --no-cache bash jq openssl ca-certificates \
+    &amp;&amp; wget -O - http://archive.apache.org/dist/kafka/$KAFKA_VERSION/$KAFKA_ARCH | tar zxf - \
+    &amp;&amp; mv /opt/kafka_$KAFKA_SCALA_VERSION-$KAFKA_VERSION $KAFKA_HOME \
+    &amp;&amp; sed -i &#39;s/zookeeper.connect=localhost:2181/zookeeper.connect=zookeeper:2181/g&#39; /opt/kafka/config/server.properties \
+    &amp;&amp; sed -i &#39;s/broker.id=0/broker.id=-1/g&#39; /opt/kafka/config/server.properties \
+    &amp;&amp; echo -e &#39;\nadvertised.listeners=PLAINTEXT://kafka:9092&#39; &gt;&gt; /opt/kafka/config/server.properties
+
+CMD [&quot;/opt/kafka/bin/kafka-server-start.sh&quot;, &quot;/opt/kafka/config/server.properties&quot;]
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Build that Dockerfile and tag the image  as <code class="docutils literal"><span class="pre">gcr.io/&lt;YOUR_PROJECT_ID&gt;/kafka:latest</span></code>. Push the image to your Google Cloud Container Registry.</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span>&gt; docker build -t gcr.io/$(gcloud config get-value project)/kafka:latest .
+&gt; gcloud docker -- push gcr.io/$(gcloud config get-value project)/kafka:latest
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Save the following snippet as <code class="docutils literal"><span class="pre">zookeeper.yaml</span></code>. Use this file to create a zookeeper service (using the <code class="docutils literal"><span class="pre">kubectl</span> <span class="pre">create</span> <span class="pre">-f</span> <span class="pre">zookeeper.yaml</span></code> command).</p>
+<blockquote>
+<div><div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">apiVersion</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="l l-Scalar l-Scalar-Plain">kind</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Service</span>
+<span class="l l-Scalar l-Scalar-Plain">metadata</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">zookeeper</span>
+<span class="l l-Scalar l-Scalar-Plain">spec</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">ports</span><span class="p p-Indicator">:</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">port</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">2181</span>
+    <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">client</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">port</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">2888</span>
+    <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">server</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">port</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">3888</span>
+    <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">leader-election</span>
+  <span class="l l-Scalar l-Scalar-Plain">selector</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">app</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">zookeeper</span>
+  <span class="l l-Scalar l-Scalar-Plain">clusterIP</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">None</span>
+<span class="nn">---</span>
+<span class="l l-Scalar l-Scalar-Plain">apiVersion</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">apps/v1</span>
+<span class="l l-Scalar l-Scalar-Plain">kind</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+<span class="l l-Scalar l-Scalar-Plain">metadata</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">zookeeper</span>
+<span class="l l-Scalar l-Scalar-Plain">spec</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">selector</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">matchLabels</span><span class="p p-Indicator">:</span>
+      <span class="l l-Scalar l-Scalar-Plain">app</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">zookeeper</span>
+  <span class="l l-Scalar l-Scalar-Plain">strategy</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">type</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Recreate</span>
+  <span class="l l-Scalar l-Scalar-Plain">template</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">metadata</span><span class="p p-Indicator">:</span>
+      <span class="l l-Scalar l-Scalar-Plain">labels</span><span class="p p-Indicator">:</span>
+        <span class="l l-Scalar l-Scalar-Plain">app</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">zookeeper</span>
+    <span class="l l-Scalar l-Scalar-Plain">spec</span><span class="p p-Indicator">:</span>
+      <span class="l l-Scalar l-Scalar-Plain">containers</span><span class="p p-Indicator">:</span>
+      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">image</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">zookeeper:3.4.11</span>
+        <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">zookeeper</span>
+        <span class="l l-Scalar l-Scalar-Plain">env</span><span class="p p-Indicator">:</span>
+        <span class="l l-Scalar l-Scalar-Plain">ports</span><span class="p p-Indicator">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">containerPort</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">2181</span>
+          <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">client</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">containerPort</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">2888</span>
+          <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">server</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">containerPort</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">3888</span>
+          <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">leader-election</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Deploy a kafka service to your kubernetes cluster using the following yaml file (<strong>replace &lt;YOUR_PROJECT_ID&gt; with your google cloud project id</strong>).</p>
+<blockquote>
+<div><div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">apiVersion</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="l l-Scalar l-Scalar-Plain">kind</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Service</span>
+<span class="l l-Scalar l-Scalar-Plain">metadata</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">kafka</span>
+<span class="l l-Scalar l-Scalar-Plain">spec</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">ports</span><span class="p p-Indicator">:</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">port</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">9092</span>
+    <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">client</span>
+  <span class="l l-Scalar l-Scalar-Plain">selector</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">app</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">kafka</span>
+  <span class="l l-Scalar l-Scalar-Plain">clusterIP</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">None</span>
+<span class="nn">---</span>
+<span class="l l-Scalar l-Scalar-Plain">apiVersion</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">apps/v1</span>
+<span class="l l-Scalar l-Scalar-Plain">kind</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+<span class="l l-Scalar l-Scalar-Plain">metadata</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">kafka</span>
+<span class="l l-Scalar l-Scalar-Plain">spec</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">selector</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">matchLabels</span><span class="p p-Indicator">:</span>
+      <span class="l l-Scalar l-Scalar-Plain">app</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">kafka</span>
+  <span class="l l-Scalar l-Scalar-Plain">strategy</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">type</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Recreate</span>
+  <span class="l l-Scalar l-Scalar-Plain">template</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">metadata</span><span class="p p-Indicator">:</span>
+      <span class="l l-Scalar l-Scalar-Plain">labels</span><span class="p p-Indicator">:</span>
+        <span class="l l-Scalar l-Scalar-Plain">app</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">kafka</span>
+    <span class="l l-Scalar l-Scalar-Plain">spec</span><span class="p p-Indicator">:</span>
+      <span class="l l-Scalar l-Scalar-Plain">containers</span><span class="p p-Indicator">:</span>
+      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">image</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">gcr.io/&lt;YOUR_PROJECT_ID&gt;/kafka:latest</span>
+        <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">kafka</span>
+        <span class="l l-Scalar l-Scalar-Plain">env</span><span class="p p-Indicator">:</span>
+        <span class="l l-Scalar l-Scalar-Plain">ports</span><span class="p p-Indicator">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">containerPort</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">9092</span>
+          <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">client</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Test that kafka is working by creating a topic and creating and consuming messages. These are the steps 9 to 12 that were provided in Part 2 of Lab No.2 (with the difference that you are now running Kafka in kubernetes, so you need to use <code class="docutils literal"><span class="pre">kubectl</span> <span class="pre">exec</span></code> command to enter the containers instead of <code class="docutils literal"><span class="pre">docker</span> <span class="pre">exec</span></code>).</p>
+</li>
+</ol>
+<div class="section" id="writing-to-kafka-with-go">
+<h2>Writing to Kafka with Go<a class="headerlink" href="#writing-to-kafka-with-go" title="Permalink to this headline">¶</a></h2>
+<p>In <a class="reference internal" href="../lab02/lab02.html#lab02-part4"><span class="std std-ref">Part 4 of Lab No. 2</span></a> we used a very simple python application to enable writing messages to a Kafka Topic.
+In this part of the lab we are going to implement the same logic using the <strong>sarama</strong> go library (<a class="reference external" href="https://github.com/Shopify/sarama">https://github.com/Shopify/sarama</a>).</p>
+<p>We are going to use a <code class="docutils literal"><span class="pre">SyncProducer</span></code> to write to kafka. The official documentation can be found at <a class="reference external" href="https://godoc.org/github.com/Shopify/sarama#example-SyncProducer">https://godoc.org/github.com/Shopify/sarama#example-SyncProducer</a>.</p>
+<p>Create a directory called <code class="docutils literal"><span class="pre">kafkawrite</span></code>.
+Inside this directory create a file called <code class="docutils literal"><span class="pre">main.go</span></code> with the following content:</p>
+<blockquote>
+<div><div class="highlight-go"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">package</span> <span class="nx">main</span>
+
+<span class="kn">import</span> <span class="p">(</span>
+	<span class="s">&quot;bufio&quot;</span>
+	<span class="s">&quot;fmt&quot;</span>
+	<span class="s">&quot;log&quot;</span>
+	<span class="s">&quot;os&quot;</span>
+
+	<span class="s">&quot;github.com/shopify/sarama&quot;</span>
+<span class="p">)</span>
+
+<span class="kd">func</span> <span class="nx">main</span><span class="p">()</span> <span class="p">{</span>
+
+	<span class="c1">// allow topic to be specified by environment variable</span>
+	<span class="nx">topic</span> <span class="o">:=</span> <span class="nx">os</span><span class="p">.</span><span class="nx">Getenv</span><span class="p">(</span><span class="s">&quot;TOPIC&quot;</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nx">topic</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">{</span>
+		<span class="nx">topic</span> <span class="p">=</span> <span class="s">&quot;mytopic&quot;</span>
+	<span class="p">}</span>
+
+	<span class="c1">// allow broker to be specified by environment variable</span>
+	<span class="nx">broker</span> <span class="o">:=</span> <span class="nx">os</span><span class="p">.</span><span class="nx">Getenv</span><span class="p">(</span><span class="s">&quot;KAFKA_BROKER&quot;</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nx">broker</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">{</span>
+		<span class="nx">broker</span> <span class="p">=</span> <span class="s">&quot;kafka&quot;</span>
+	<span class="p">}</span>
+
+	<span class="c1">// Create an instance of a SyncProducer that will connect to the specified broker</span>
+	<span class="nx">producer</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">sarama</span><span class="p">.</span><span class="nx">NewSyncProducer</span><span class="p">([]</span><span class="kt">string</span><span class="p">{</span><span class="nx">broker</span><span class="p">},</span> <span class="kc">nil</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="nx">log</span><span class="p">.</span><span class="nx">Fatalln</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="k">defer</span> <span class="nx">producer</span><span class="p">.</span><span class="nx">Close</span><span class="p">()</span>
+
+	<span class="nx">fmt</span><span class="p">.</span><span class="nx">Printf</span><span class="p">(</span><span class="s">&quot;Enter lines of text to be written to \&quot;%s\&quot;:\n&quot;</span><span class="p">,</span> <span class="nx">topic</span><span class="p">)</span>
+
+	<span class="c1">// read lines from stdin</span>
+	<span class="nx">scanner</span> <span class="o">:=</span> <span class="nx">bufio</span><span class="p">.</span><span class="nx">NewScanner</span><span class="p">(</span><span class="nx">os</span><span class="p">.</span><span class="nx">Stdin</span><span class="p">)</span>
+	<span class="k">for</span> <span class="nx">scanner</span><span class="p">.</span><span class="nx">Scan</span><span class="p">()</span> <span class="p">{</span>
+		<span class="nx">text</span> <span class="o">:=</span> <span class="nx">scanner</span><span class="p">.</span><span class="nx">Text</span><span class="p">()</span>
+		<span class="k">if</span> <span class="nx">text</span> <span class="o">==</span> <span class="s">&quot;&quot;</span> <span class="p">{</span>
+			<span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="s">&quot;Bye!&quot;</span><span class="p">)</span>
+			<span class="k">break</span>
+		<span class="p">}</span>
+		<span class="c1">// create a message</span>
+		<span class="nx">msg</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">sarama</span><span class="p">.</span><span class="nx">ProducerMessage</span><span class="p">{</span><span class="nx">Topic</span><span class="p">:</span> <span class="nx">topic</span><span class="p">,</span> <span class="nx">Value</span><span class="p">:</span> <span class="nx">sarama</span><span class="p">.</span><span class="nx">StringEncoder</span><span class="p">(</span><span class="nx">text</span><span class="p">)}</span>
+		<span class="c1">// write the message to the broker</span>
+		<span class="nx">_</span><span class="p">,</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">producer</span><span class="p">.</span><span class="nx">SendMessage</span><span class="p">(</span><span class="nx">msg</span><span class="p">)</span>
+		<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+			<span class="nx">log</span><span class="p">.</span><span class="nx">Fatalln</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+		<span class="p">}</span>
+	<span class="p">}</span>
+	<span class="nx">os</span><span class="p">.</span><span class="nx">Exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
+</div></blockquote>
+<p>When this file is executed, it reads input from a terminal and writes it to a Kafka topic.
+The interesting bits (as far as it concerns to Kafka/Sarama) are:</p>
+<blockquote>
+<div><ul class="simple">
+<li>line 27: create an instance of <code class="docutils literal"><span class="pre">SyncProducer</span></code></li>
+<li>line 44: create a <code class="docutils literal"><span class="pre">ProducerMessage</span></code>. This object is a collection of elements passed to the Producer in order to send a message, in this case we only care about the <em>topic</em> and the <em>value</em> (the message itself)</li>
+<li>line 46: the <code class="docutils literal"><span class="pre">SendMessage</span></code> executes the write request.</li>
+</ul>
+</div></blockquote>
+<p>To test this file, execute the following commands in <strong>lab08</strong>:</p>
+<ol class="arabic">
+<li><p class="first">First install go:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">golang</span><span class="o">-</span><span class="n">go</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Get <code class="docutils literal"><span class="pre">sarama</span></code>:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">go</span> <span class="n">get</span> <span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">shopify</span><span class="o">/</span><span class="n">sarama</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Sarama needs to be able to resolve the names of the kafka brokers. Since we want to test this locally (vs in a kubernetes environment) and we have kafka running in a Kubernetes pod, we need to add the IP Address of the kafka pod to <strong>lab08</strong> <code class="docutils literal"><span class="pre">/etc/hosts</span></code> file. The following set of commands first make a backup of your <code class="docutils literal"><span class="pre">/etc/hosts</span></code> file, and then it appends and entry to this file with the IP Address and name of the Kafka container. Run the following command <strong>very carefully</strong>, if you enter an incorrect value you might wipe out your <code class="docutils literal"><span class="pre">/etc/hosts</span></code> file.</p>
+<blockquote>
+<div><pre class="literal-block">
+&gt; cp /etc/hosts etchosts.back
+&gt; KAFKA_IP=$(kubectl get pods --selector=app=kafka -o jsonpath='{.items[*].status.podIP}') sudo -E bash -c 'echo -e &quot;\n$KAFKA_IP kafka&quot; &gt;&gt; /etc/hosts'
+</pre>
+<p>After running the previous command you should see a line added at the end of your <code class="docutils literal"><span class="pre">/etc/hosts</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">cat</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">hosts</span>
+<span class="mf">127.0</span><span class="o">.</span><span class="mf">0.1</span> <span class="n">localhost</span>
+
+<span class="c1"># The following lines are desirable for IPv6 capable hosts</span>
+<span class="p">::</span><span class="mi">1</span> <span class="n">ip6</span><span class="o">-</span><span class="n">localhost</span> <span class="n">ip6</span><span class="o">-</span><span class="n">loopback</span>
+<span class="n">fe00</span><span class="p">::</span><span class="mi">0</span> <span class="n">ip6</span><span class="o">-</span><span class="n">localnet</span>
+<span class="n">ff00</span><span class="p">::</span><span class="mi">0</span> <span class="n">ip6</span><span class="o">-</span><span class="n">mcastprefix</span>
+<span class="n">ff02</span><span class="p">::</span><span class="mi">1</span> <span class="n">ip6</span><span class="o">-</span><span class="n">allnodes</span>
+<span class="n">ff02</span><span class="p">::</span><span class="mi">2</span> <span class="n">ip6</span><span class="o">-</span><span class="n">allrouters</span>
+<span class="n">ff02</span><span class="p">::</span><span class="mi">3</span> <span class="n">ip6</span><span class="o">-</span><span class="n">allhosts</span>
+<span class="mf">169.254</span><span class="o">.</span><span class="mf">169.254</span> <span class="n">metadata</span><span class="o">.</span><span class="n">google</span><span class="o">.</span><span class="n">internal</span> <span class="n">metadata</span>
+
+<span class="mf">10.40</span><span class="o">.</span><span class="mf">0.7</span> <span class="n">kafka</span>
+</pre></div>
+</div>
+<p>You can also confirm by <em>pinging</em> the container by its name:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">ping</span> <span class="o">-</span><span class="n">c</span> <span class="mi">3</span> <span class="n">kafka</span>
+<span class="n">PING</span> <span class="n">kafka</span> <span class="p">(</span><span class="mf">10.40</span><span class="o">.</span><span class="mf">0.7</span><span class="p">)</span> <span class="mi">56</span><span class="p">(</span><span class="mi">84</span><span class="p">)</span> <span class="nb">bytes</span> <span class="n">of</span> <span class="n">data</span><span class="o">.</span>
+<span class="mi">64</span> <span class="nb">bytes</span> <span class="kn">from</span> <span class="nn">kafka</span> <span class="p">(</span><span class="mf">10.40</span><span class="o">.</span><span class="mf">0.7</span><span class="p">):</span> <span class="n">icmp_seq</span><span class="o">=</span><span class="mi">1</span> <span class="n">ttl</span><span class="o">=</span><span class="mi">63</span> <span class="n">time</span><span class="o">=</span><span class="mf">26.1</span> <span class="n">ms</span>
+<span class="mi">64</span> <span class="nb">bytes</span> <span class="kn">from</span> <span class="nn">kafka</span> <span class="p">(</span><span class="mf">10.40</span><span class="o">.</span><span class="mf">0.7</span><span class="p">):</span> <span class="n">icmp_seq</span><span class="o">=</span><span class="mi">2</span> <span class="n">ttl</span><span class="o">=</span><span class="mi">63</span> <span class="n">time</span><span class="o">=</span><span class="mf">24.4</span> <span class="n">ms</span>
+<span class="mi">64</span> <span class="nb">bytes</span> <span class="kn">from</span> <span class="nn">kafka</span> <span class="p">(</span><span class="mf">10.40</span><span class="o">.</span><span class="mf">0.7</span><span class="p">):</span> <span class="n">icmp_seq</span><span class="o">=</span><span class="mi">3</span> <span class="n">ttl</span><span class="o">=</span><span class="mi">63</span> <span class="n">time</span><span class="o">=</span><span class="mf">24.8</span> <span class="n">ms</span>
+
+<span class="o">---</span> <span class="n">kafka</span> <span class="n">ping</span> <span class="n">statistics</span> <span class="o">---</span>
+<span class="mi">3</span> <span class="n">packets</span> <span class="n">transmitted</span><span class="p">,</span> <span class="mi">3</span> <span class="n">received</span><span class="p">,</span> <span class="mi">0</span><span class="o">%</span> <span class="n">packet</span> <span class="n">loss</span><span class="p">,</span> <span class="n">time</span> <span class="mi">2003</span><span class="n">ms</span>
+<span class="n">rtt</span> <span class="nb">min</span><span class="o">/</span><span class="n">avg</span><span class="o">/</span><span class="nb">max</span><span class="o">/</span><span class="n">mdev</span> <span class="o">=</span> <span class="mf">24.465</span><span class="o">/</span><span class="mf">25.129</span><span class="o">/</span><span class="mf">26.101</span><span class="o">/</span><span class="mf">0.714</span> <span class="n">ms</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Execute using <code class="docutils literal"><span class="pre">go</span> <span class="pre">run</span></code>. Notice how we set the <code class="docutils literal"><span class="pre">TOPIC</span></code> and the <code class="docutils literal"><span class="pre">KAFKA_BROKER</span></code> variables:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">TOPIC</span><span class="o">=</span><span class="n">testtopic</span> <span class="n">KAFKA_BROKER</span><span class="o">=</span><span class="n">kafka</span><span class="p">:</span><span class="mi">9092</span> <span class="n">go</span> <span class="n">run</span> <span class="n">kafkawrite</span><span class="o">/</span><span class="n">main</span><span class="o">.</span><span class="n">go</span>
+<span class="n">Enter</span> <span class="n">lines</span> <span class="n">of</span> <span class="n">text</span> <span class="n">to</span> <span class="n">be</span> <span class="n">written</span> <span class="n">to</span> <span class="s2">&quot;testtopic&quot;</span><span class="p">:</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Enter several lines of text. Each line will be written to Kafka as a message to the topic <code class="docutils literal"><span class="pre">testtopic</span></code>. In the next part of the lab we are going to read those messages. If you enter one blank line the utility will exit, however, do not exit this utility at this time since we are going to use it in the next part of the lab (if you exited, you can simple re-run it).</p>
+</li>
+</ol>
+</div>
+<div class="section" id="reading-from-kafka-with-go">
+<h2>Reading from Kafka with Go<a class="headerlink" href="#reading-from-kafka-with-go" title="Permalink to this headline">¶</a></h2>
+<p>We are going to use a <code class="docutils literal"><span class="pre">Consumer</span></code> class to read from kafka. The official documentation can be found at <a class="reference external" href="https://godoc.org/github.com/Shopify/sarama#example-Consumer">https://godoc.org/github.com/Shopify/sarama#example-Consumer</a>.</p>
+<p>Start by opening a new SSH session to <strong>lab08</strong>. Create a directory called <code class="docutils literal"><span class="pre">kafkaread</span></code>.
+Inside this directory create a file called <code class="docutils literal"><span class="pre">main.go</span></code> with the following content:</p>
+<blockquote>
+<div><div class="highlight-go"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">package</span> <span class="nx">main</span>
+
+<span class="kn">import</span> <span class="p">(</span>
+	<span class="s">&quot;fmt&quot;</span>
+	<span class="s">&quot;log&quot;</span>
+	<span class="s">&quot;os&quot;</span>
+
+	<span class="s">&quot;github.com/shopify/sarama&quot;</span>
+<span class="p">)</span>
+
+<span class="kd">func</span> <span class="nx">main</span><span class="p">()</span> <span class="p">{</span>
+
+	<span class="c1">// allow topic to be specified by environment variable</span>
+	<span class="nx">topic</span> <span class="o">:=</span> <span class="nx">os</span><span class="p">.</span><span class="nx">Getenv</span><span class="p">(</span><span class="s">&quot;TOPIC&quot;</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nx">topic</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">{</span>
+		<span class="nx">topic</span> <span class="p">=</span> <span class="s">&quot;mytopic&quot;</span>
+	<span class="p">}</span>
+
+	<span class="c1">// allow broker to be specified by environment variable</span>
+	<span class="nx">broker</span> <span class="o">:=</span> <span class="nx">os</span><span class="p">.</span><span class="nx">Getenv</span><span class="p">(</span><span class="s">&quot;KAFKA_BROKER&quot;</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nx">broker</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">{</span>
+		<span class="nx">broker</span> <span class="p">=</span> <span class="s">&quot;kafka&quot;</span>
+	<span class="p">}</span>
+
+	<span class="c1">// Create an instance of Consumer that will connect to the specified broker</span>
+	<span class="nx">consumer</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">sarama</span><span class="p">.</span><span class="nx">NewConsumer</span><span class="p">([]</span><span class="kt">string</span><span class="p">{</span><span class="nx">broker</span><span class="p">},</span> <span class="kc">nil</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="nx">log</span><span class="p">.</span><span class="nx">Fatalln</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="k">defer</span> <span class="nx">consumer</span><span class="p">.</span><span class="nx">Close</span><span class="p">()</span>
+
+	<span class="c1">// Since we are not consuming messages as part of a consumer group, we need to specify</span>
+	<span class="c1">// from which partition we need to consume. The topic for this example was created with</span>
+	<span class="c1">// only one partition, so we use partition 0</span>
+	<span class="nx">partitionConsumer</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">consumer</span><span class="p">.</span><span class="nx">ConsumePartition</span><span class="p">(</span><span class="nx">topic</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nx">sarama</span><span class="p">.</span><span class="nx">OffsetNewest</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="nx">log</span><span class="p">.</span><span class="nx">Fatalln</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="k">defer</span> <span class="nx">partitionConsumer</span><span class="p">.</span><span class="nx">Close</span><span class="p">()</span>
+
+	<span class="k">for</span> <span class="p">{</span>
+		<span class="nx">msg</span> <span class="o">:=</span> <span class="o">&lt;-</span><span class="nx">partitionConsumer</span><span class="p">.</span><span class="nx">Messages</span><span class="p">()</span>
+		<span class="nx">fmt</span><span class="p">.</span><span class="nx">Println</span><span class="p">(</span><span class="nb">string</span><span class="p">(</span><span class="nx">msg</span><span class="p">.</span><span class="nx">Value</span><span class="p">))</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
+</div></blockquote>
+<p>When this file is executed, it reads messages from the specified topic and prints them to stdout.
+The Kafka/Sarama logic that you should understand is in the following lines:</p>
+<blockquote>
+<div><ul class="simple">
+<li>line 26: create an instance of <code class="docutils literal"><span class="pre">Consumer</span></code></li>
+<li>line 35: specify that we want to consume messages from the partition labeled ‘0’ (the default), and we want to consume only new messages. If you specify <code class="docutils literal"><span class="pre">sarama.OffsetOlders</span></code> the program will consume all the messages in the topic/partition.  For this example we are not using partitions, we are using the default which is only one.</li>
+<li>line 42: <cite>partitionConsumer.Messages()</cite> returns a channel with the messages returned by Kafka. (In case you don’t understand what Go channels are, you can play with them here: <a class="reference external" href="https://tour.golang.org/concurrency/2">https://tour.golang.org/concurrency/2</a>)</li>
+</ul>
+</div></blockquote>
+<p>To test this file, execute the following command in <strong>lab08</strong>:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">TOPIC</span><span class="o">=</span><span class="n">testtopic</span> <span class="n">KAFKA_BROKER</span><span class="o">=</span><span class="n">kafka</span><span class="p">:</span><span class="mi">9092</span> <span class="n">go</span> <span class="n">run</span> <span class="n">kafkaread</span><span class="o">/</span><span class="n">main</span><span class="o">.</span><span class="n">go</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>Now, go back to the terminal where you left the <code class="docutils literal"><span class="pre">kafkawrite</span></code> application running. Type any text you would like, and press <code class="kbd docutils literal"><span class="pre">Enter</span></code>. Notice how the messages that you write are printed to standard out by <code class="docutils literal"><span class="pre">kafkaread</span></code>.</p>
+</div>
+</div>
+<div class="section" id="part-2-a-simple-websockets-chat-application">
+<h1>Part 2: A simple websockets chat application<a class="headerlink" href="#part-2-a-simple-websockets-chat-application" title="Permalink to this headline">¶</a></h1>
+<p>In this section, we are going to create a very simple chat application using the <strong>gorilla/websocket</strong> Go library (<a class="reference external" href="http://www.gorillatoolkit.org/pkg/websocket">http://www.gorillatoolkit.org/pkg/websocket</a>)</p>
+<ol class="arabic">
+<li><p class="first">SSH into <strong>lab08</strong>. Create a new directory called <code class="docutils literal"><span class="pre">chatserver</span></code> and change into it.</p>
+</li>
+<li><p class="first">Create a file named <code class="docutils literal"><span class="pre">main.go</span></code> with the following contents:</p>
+<blockquote>
+<div><div class="highlight-go"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10
+ 11
+ 12
+ 13
+ 14
+ 15
+ 16
+ 17
+ 18
+ 19
+ 20
+ 21
+ 22
+ 23
+ 24
+ 25
+ 26
+ 27
+ 28
+ 29
+ 30
+ 31
+ 32
+ 33
+ 34
+ 35
+ 36
+ 37
+ 38
+ 39
+ 40
+ 41
+ 42
+ 43
+ 44
+ 45
+ 46
+ 47
+ 48
+ 49
+ 50
+ 51
+ 52
+ 53
+ 54
+ 55
+ 56
+ 57
+ 58
+ 59
+ 60
+ 61
+ 62
+ 63
+ 64
+ 65
+ 66
+ 67
+ 68
+ 69
+ 70
+ 71
+ 72
+ 73
+ 74
+ 75
+ 76
+ 77
+ 78
+ 79
+ 80
+ 81
+ 82
+ 83
+ 84
+ 85
+ 86
+ 87
+ 88
+ 89
+ 90
+ 91
+ 92
+ 93
+ 94
+ 95
+ 96
+ 97
+ 98
+ 99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">package</span> <span class="nx">main</span>
+
+<span class="kn">import</span> <span class="p">(</span>
+	<span class="s">&quot;bytes&quot;</span>
+	<span class="s">&quot;html/template&quot;</span>
+	<span class="s">&quot;log&quot;</span>
+	<span class="s">&quot;net/http&quot;</span>
+	<span class="s">&quot;os&quot;</span>
+
+	<span class="s">&quot;github.com/gorilla/websocket&quot;</span>
+<span class="p">)</span>
+
+<span class="c1">// map used for keeping a list of clients where broadcasts need to be sent</span>
+<span class="kd">var</span> <span class="nx">clients</span> <span class="p">=</span> <span class="nb">make</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="o">*</span><span class="nx">websocket</span><span class="p">.</span><span class="nx">Conn</span><span class="p">]</span><span class="kt">bool</span><span class="p">)</span>
+
+<span class="c1">// channel used to pass messages that need to be broadcast</span>
+<span class="kd">var</span> <span class="nx">broadcast</span> <span class="p">=</span> <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="p">[]</span><span class="kt">byte</span><span class="p">)</span>
+
+<span class="kd">var</span> <span class="nx">upgrader</span> <span class="p">=</span> <span class="nx">websocket</span><span class="p">.</span><span class="nx">Upgrader</span><span class="p">{</span>
+	<span class="nx">ReadBufferSize</span><span class="p">:</span>  <span class="mi">1024</span><span class="p">,</span>
+	<span class="nx">WriteBufferSize</span><span class="p">:</span> <span class="mi">1024</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="kd">var</span> <span class="nx">podName</span> <span class="kt">string</span>
+
+<span class="kd">var</span> <span class="p">(</span>
+	<span class="nx">newline</span> <span class="p">=</span> <span class="p">[]</span><span class="kt">byte</span><span class="p">{</span><span class="sc">&#39;\n&#39;</span><span class="p">}</span>
+	<span class="nx">space</span>   <span class="p">=</span> <span class="p">[]</span><span class="kt">byte</span><span class="p">{</span><span class="sc">&#39; &#39;</span><span class="p">}</span>
+<span class="p">)</span>
+
+<span class="kd">func</span> <span class="nx">init</span><span class="p">()</span> <span class="p">{</span>
+	<span class="nx">podName</span> <span class="p">=</span> <span class="nx">os</span><span class="p">.</span><span class="nx">Getenv</span><span class="p">(</span><span class="s">&quot;podname&quot;</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nx">podName</span> <span class="o">==</span> <span class="s">&quot;&quot;</span> <span class="p">{</span>
+		<span class="nx">podName</span> <span class="p">=</span> <span class="s">&quot;Unknown Pod Name&quot;</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="nx">main</span><span class="p">()</span> <span class="p">{</span>
+	<span class="nx">http</span><span class="p">.</span><span class="nx">HandleFunc</span><span class="p">(</span><span class="s">&quot;/&quot;</span><span class="p">,</span> <span class="nx">serveHome</span><span class="p">)</span>
+	<span class="nx">http</span><span class="p">.</span><span class="nx">HandleFunc</span><span class="p">(</span><span class="s">&quot;/ws&quot;</span><span class="p">,</span> <span class="nx">handleWSConnections</span><span class="p">)</span>
+	<span class="k">go</span> <span class="nx">handleMessages</span><span class="p">()</span>
+	<span class="nx">err</span> <span class="o">:=</span> <span class="nx">http</span><span class="p">.</span><span class="nx">ListenAndServe</span><span class="p">(</span><span class="s">&quot;:8000&quot;</span><span class="p">,</span> <span class="kc">nil</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="nx">log</span><span class="p">.</span><span class="nx">Fatalln</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">// Handler for the root path. It merely returns the formatted content of the</span>
+<span class="c1">// homePage template declared at the end of this file. The only dynamic bit of that</span>
+<span class="c1">// template is the pod name</span>
+<span class="kd">func</span> <span class="nx">serveHome</span><span class="p">(</span><span class="nx">w</span> <span class="nx">http</span><span class="p">.</span><span class="nx">ResponseWriter</span><span class="p">,</span> <span class="nx">r</span> <span class="o">*</span><span class="nx">http</span><span class="p">.</span><span class="nx">Request</span><span class="p">)</span> <span class="p">{</span>
+	<span class="nx">podstr</span> <span class="o">:=</span> <span class="kd">struct</span> <span class="p">{</span>
+		<span class="nx">PodName</span> <span class="kt">string</span>
+	<span class="p">}{</span><span class="nx">PodName</span><span class="p">:</span> <span class="nx">podName</span><span class="p">}</span>
+	<span class="nx">homePage</span><span class="p">.</span><span class="nx">Execute</span><span class="p">(</span><span class="nx">w</span><span class="p">,</span> <span class="nx">podstr</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1">// Handler for the websockets connections</span>
+<span class="kd">func</span> <span class="nx">handleWSConnections</span><span class="p">(</span><span class="nx">w</span> <span class="nx">http</span><span class="p">.</span><span class="nx">ResponseWriter</span><span class="p">,</span> <span class="nx">r</span> <span class="o">*</span><span class="nx">http</span><span class="p">.</span><span class="nx">Request</span><span class="p">)</span> <span class="p">{</span>
+
+	<span class="c1">// upgrade the connection to a websocket</span>
+	<span class="nx">ws</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">upgrader</span><span class="p">.</span><span class="nx">Upgrade</span><span class="p">(</span><span class="nx">w</span><span class="p">,</span> <span class="nx">r</span><span class="p">,</span> <span class="kc">nil</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="nx">log</span><span class="p">.</span><span class="nx">Fatal</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="k">defer</span> <span class="nx">ws</span><span class="p">.</span><span class="nx">Close</span><span class="p">()</span>
+
+	<span class="c1">// keep track of the clients in order to be able to send broadcasts</span>
+	<span class="nx">clients</span><span class="p">[</span><span class="nx">ws</span><span class="p">]</span> <span class="p">=</span> <span class="kc">true</span>
+
+	<span class="c1">// endless loop that reads from the websocket and writes them to the broadcast channel</span>
+	<span class="k">for</span> <span class="p">{</span>
+		<span class="nx">_</span><span class="p">,</span> <span class="nx">msg</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">ws</span><span class="p">.</span><span class="nx">ReadMessage</span><span class="p">()</span>
+		<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+			<span class="nx">log</span><span class="p">.</span><span class="nx">Printf</span><span class="p">(</span><span class="s">&quot;error: %v&quot;</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+			<span class="nb">delete</span><span class="p">(</span><span class="nx">clients</span><span class="p">,</span> <span class="nx">ws</span><span class="p">)</span>
+			<span class="k">break</span>
+		<span class="p">}</span>
+		<span class="nx">msg</span> <span class="p">=</span> <span class="nx">bytes</span><span class="p">.</span><span class="nx">TrimSpace</span><span class="p">(</span><span class="nx">bytes</span><span class="p">.</span><span class="nx">Replace</span><span class="p">(</span><span class="nx">msg</span><span class="p">,</span> <span class="nx">newline</span><span class="p">,</span> <span class="nx">space</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+		<span class="nx">broadcast</span> <span class="o">&lt;-</span> <span class="nx">msg</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">// Handler that listens to messages coming from the broadcast channel and</span>
+<span class="c1">// sends them to each one of the websocket clients.</span>
+<span class="c1">// We should probably implement some sanitation here to prevent injecting malicious code to clients.</span>
+<span class="kd">func</span> <span class="nx">handleMessages</span><span class="p">()</span> <span class="p">{</span>
+	<span class="k">for</span> <span class="p">{</span>
+		<span class="nx">msg</span> <span class="o">:=</span> <span class="o">&lt;-</span><span class="nx">broadcast</span>
+		<span class="k">for</span> <span class="nx">client</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">clients</span> <span class="p">{</span>
+			<span class="nx">err</span> <span class="o">:=</span> <span class="nx">client</span><span class="p">.</span><span class="nx">WriteMessage</span><span class="p">(</span><span class="nx">websocket</span><span class="p">.</span><span class="nx">TextMessage</span><span class="p">,</span> <span class="nx">msg</span><span class="p">)</span>
+			<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+				<span class="nx">log</span><span class="p">.</span><span class="nx">Printf</span><span class="p">(</span><span class="s">&quot;error: %v&quot;</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+				<span class="nx">client</span><span class="p">.</span><span class="nx">Close</span><span class="p">()</span>
+				<span class="nb">delete</span><span class="p">(</span><span class="nx">clients</span><span class="p">,</span> <span class="nx">client</span><span class="p">)</span>
+			<span class="p">}</span>
+		<span class="p">}</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">// Template to render a UI. Then only variable is the Pod Name.</span>
+<span class="c1">// Tested only on Chrome.</span>
+<span class="c1">// Adapted from https://github.com/gorilla/websocket/blob/master/examples/chat/home.html</span>
+<span class="kd">var</span> <span class="nx">homePage</span> <span class="p">=</span> <span class="nx">template</span><span class="p">.</span><span class="nx">Must</span><span class="p">(</span><span class="nx">template</span><span class="p">.</span><span class="nx">New</span><span class="p">(</span><span class="s">&quot;&quot;</span><span class="p">).</span><span class="nx">Parse</span><span class="p">(</span><span class="s">`</span>
+<span class="s">&lt;!DOCTYPE html&gt;</span>
+<span class="s">&lt;html lang=&quot;en&quot;&gt;</span>
+<span class="s">&lt;head&gt;</span>
+<span class="s">&lt;title&gt;Connected to Pod {{.PodName}}&lt;/title&gt;</span>
+<span class="s">&lt;script type=&quot;text/javascript&quot;&gt;</span>
+<span class="s">window.onload = function () {</span>
+<span class="s">    var conn;</span>
+<span class="s">    var msg = document.getElementById(&quot;msg&quot;);</span>
+<span class="s">    var log = document.getElementById(&quot;log&quot;);</span>
+
+<span class="s">    function appendLog(item) {</span>
+<span class="s">        var doScroll = log.scrollTop &gt; log.scrollHeight - log.clientHeight - 1;</span>
+<span class="s">        log.appendChild(item);</span>
+<span class="s">        if (doScroll) {</span>
+<span class="s">            log.scrollTop = log.scrollHeight - log.clientHeight;</span>
+<span class="s">        }</span>
+<span class="s">    }</span>
+
+<span class="s">    document.getElementById(&quot;form&quot;).onsubmit = function () {</span>
+<span class="s">        if (!conn) {</span>
+<span class="s">            return false;</span>
+<span class="s">        }</span>
+<span class="s">        if (!msg.value) {</span>
+<span class="s">            return false;</span>
+<span class="s">        }</span>
+<span class="s">        conn.send(msg.value);</span>
+<span class="s">        msg.value = &quot;&quot;;</span>
+<span class="s">        return false;</span>
+<span class="s">    };</span>
+
+<span class="s">    if (window[&quot;WebSocket&quot;]) {</span>
+<span class="s">        conn = new WebSocket(&quot;ws://&quot; + document.location.host + &quot;/ws&quot;);</span>
+<span class="s">        conn.onclose = function (evt) {</span>
+<span class="s">            var item = document.createElement(&quot;div&quot;);</span>
+<span class="s">            item.innerHTML = &quot;&lt;b&gt;Connection closed.&lt;/b&gt;&quot;;</span>
+<span class="s">            appendLog(item);</span>
+<span class="s">        };</span>
+<span class="s">        conn.onmessage = function (evt) {</span>
+<span class="s">            var messages = evt.data.split(&#39;\n&#39;);</span>
+<span class="s">            for (var i = 0; i &lt; messages.length; i++) {</span>
+<span class="s">                var item = document.createElement(&quot;div&quot;);</span>
+<span class="s">                item.innerText = messages[i];</span>
+<span class="s">                appendLog(item);</span>
+<span class="s">            }</span>
+<span class="s">        };</span>
+<span class="s">    } else {</span>
+<span class="s">        var item = document.createElement(&quot;div&quot;);</span>
+<span class="s">        item.innerHTML = &quot;&lt;b&gt;Your browser does not support WebSockets.&lt;/b&gt;&quot;;</span>
+<span class="s">        appendLog(item);</span>
+<span class="s">    }</span>
+<span class="s">};</span>
+<span class="s">&lt;/script&gt;</span>
+<span class="s">&lt;style type=&quot;text/css&quot;&gt;</span>
+<span class="s">html {</span>
+<span class="s">    overflow: hidden;</span>
+<span class="s">}</span>
+
+<span class="s">body {</span>
+<span class="s">    overflow: hidden;</span>
+<span class="s">    padding: 0;</span>
+<span class="s">    margin: 0;</span>
+<span class="s">    width: 100%;</span>
+<span class="s">    height: 100%;</span>
+<span class="s">    background: gray;</span>
+<span class="s">}</span>
+
+<span class="s">#log {</span>
+<span class="s">    background: white;</span>
+<span class="s">    margin: 0;</span>
+<span class="s">    padding: 0.5em 0.5em 0.5em 0.5em;</span>
+<span class="s">    position: absolute;</span>
+<span class="s">    top: 2.5em;</span>
+<span class="s">    left: 0.5em;</span>
+<span class="s">    right: 0.5em;</span>
+<span class="s">    bottom: 3em;</span>
+<span class="s">    overflow: auto;</span>
+<span class="s">}</span>
+
+<span class="s">#form {</span>
+<span class="s">    padding: 0 0.5em 0 0.5em;</span>
+<span class="s">    margin: 0;</span>
+<span class="s">    position: absolute;</span>
+<span class="s">    bottom: 1em;</span>
+<span class="s">    left: 0px;</span>
+<span class="s">    width: 100%;</span>
+<span class="s">    overflow: hidden;</span>
+<span class="s">}</span>
+
+<span class="s">&lt;/style&gt;</span>
+<span class="s">&lt;/head&gt;</span>
+<span class="s">&lt;body&gt;</span>
+<span class="s">&lt;div&gt;</span>
+<span class="s">&lt;p style=&quot;text-align:center&quot;&gt;Chatting on {{.PodName}}&lt;/p&gt;</span>
+<span class="s">&lt;/div&gt;</span>
+<span class="s">&lt;div id=&quot;log&quot;&gt;&lt;/div&gt;</span>
+<span class="s">&lt;form id=&quot;form&quot;&gt;</span>
+<span class="s">    &lt;input type=&quot;submit&quot; value=&quot;Send&quot; /&gt;</span>
+<span class="s">    &lt;input type=&quot;text&quot; id=&quot;msg&quot; size=&quot;64&quot;/&gt;</span>
+<span class="s">&lt;/form&gt;</span>
+<span class="s">&lt;/body&gt;</span>
+<span class="s">&lt;/html&gt;</span>
+<span class="s">`</span><span class="p">))</span>
+</pre></div>
+</td></tr></table></div>
+</div></blockquote>
+</li>
+<li><p class="first">Create a <code class="docutils literal"><span class="pre">Dockerfile</span></code> with the following contents:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">FROM</span> <span class="n">golang</span><span class="p">:</span><span class="n">alpine</span> <span class="k">as</span> <span class="n">builder</span>
+
+<span class="n">COPY</span> <span class="n">main</span><span class="o">.</span><span class="n">go</span> <span class="o">.</span>
+<span class="n">RUN</span> <span class="n">apk</span> <span class="n">update</span> <span class="o">&amp;&amp;</span> \
+    <span class="n">apk</span> <span class="n">add</span> <span class="n">git</span> <span class="o">&amp;&amp;</span> \
+    <span class="n">go</span> <span class="n">get</span> <span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">gorilla</span><span class="o">/</span><span class="n">websocket</span> <span class="o">&amp;&amp;</span> \
+    <span class="n">go</span> <span class="n">build</span> <span class="o">-</span><span class="n">ldflags</span> <span class="s1">&#39;-extldflags &quot;-static&quot;&#39;</span> <span class="o">-</span><span class="n">o</span> <span class="n">chatserver</span> <span class="n">main</span><span class="o">.</span><span class="n">go</span>
+
+<span class="n">FROM</span> <span class="n">alpine</span><span class="p">:</span><span class="n">latest</span>
+<span class="n">COPY</span> <span class="o">--</span><span class="n">from</span><span class="o">=</span><span class="n">builder</span> <span class="o">/</span><span class="n">go</span><span class="o">/</span><span class="n">chatserver</span> <span class="o">.</span>
+<span class="n">CMD</span> <span class="p">[</span><span class="s2">&quot;/chatserver&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Create a <code class="docutils literal"><span class="pre">chatserver.yaml</span></code> file with the following contents (<strong>replace &lt;YOUR_PROJECT_ID&gt; with your google cloud project id</strong>)</p>
+<blockquote>
+<div><div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">apiVersion</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">extensions/v1beta1</span>
+<span class="l l-Scalar l-Scalar-Plain">kind</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+<span class="l l-Scalar l-Scalar-Plain">metadata</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">chatserver</span>
+<span class="l l-Scalar l-Scalar-Plain">spec</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">replicas</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">2</span>
+  <span class="l l-Scalar l-Scalar-Plain">template</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">metadata</span><span class="p p-Indicator">:</span>
+      <span class="l l-Scalar l-Scalar-Plain">labels</span><span class="p p-Indicator">:</span>
+        <span class="l l-Scalar l-Scalar-Plain">app</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">chatserver</span>
+    <span class="l l-Scalar l-Scalar-Plain">spec</span><span class="p p-Indicator">:</span>
+      <span class="l l-Scalar l-Scalar-Plain">containers</span><span class="p p-Indicator">:</span>
+      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">chatserver</span>
+        <span class="l l-Scalar l-Scalar-Plain">image</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">gcr.io/&lt;YOUR_PROJECT_ID&gt;/chatserver:latest</span>
+        <span class="l l-Scalar l-Scalar-Plain">imagePullPolicy</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Always</span>
+        <span class="l l-Scalar l-Scalar-Plain">ports</span><span class="p p-Indicator">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">http</span>
+          <span class="l l-Scalar l-Scalar-Plain">containerPort</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">8000</span>
+        <span class="l l-Scalar l-Scalar-Plain">env</span><span class="p p-Indicator">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">podname</span>
+          <span class="l l-Scalar l-Scalar-Plain">valueFrom</span><span class="p p-Indicator">:</span>
+            <span class="l l-Scalar l-Scalar-Plain">fieldRef</span><span class="p p-Indicator">:</span>
+              <span class="l l-Scalar l-Scalar-Plain">fieldPath</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">metadata.name</span>
+<span class="nn">---</span>
+<span class="l l-Scalar l-Scalar-Plain">apiVersion</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="l l-Scalar l-Scalar-Plain">kind</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Service</span>
+<span class="l l-Scalar l-Scalar-Plain">metadata</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">chatserver</span>
+  <span class="l l-Scalar l-Scalar-Plain">labels</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">app</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">chatserver</span>
+<span class="l l-Scalar l-Scalar-Plain">spec</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">type</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">NodePort</span>
+  <span class="l l-Scalar l-Scalar-Plain">ports</span><span class="p p-Indicator">:</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">port</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">80</span>
+    <span class="l l-Scalar l-Scalar-Plain">targetPort</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">8000</span>
+    <span class="l l-Scalar l-Scalar-Plain">protocol</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">TCP</span>
+  <span class="l l-Scalar l-Scalar-Plain">selector</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">app</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">chatserver</span>
+<span class="nn">---</span>
+<span class="l l-Scalar l-Scalar-Plain">apiVersion</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">extensions/v1beta1</span>
+<span class="l l-Scalar l-Scalar-Plain">kind</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">Ingress</span>
+<span class="l l-Scalar l-Scalar-Plain">metadata</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">name</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">chatserver</span>
+<span class="l l-Scalar l-Scalar-Plain">spec</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">backend</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">serviceName</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">chatserver</span>
+    <span class="l l-Scalar l-Scalar-Plain">servicePort</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">80</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Once all these files have been created, the directory tree of <code class="docutils literal"><span class="pre">chatserver</span></code> should look like this:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span>chatserver
+   ├── chatserver.yaml
+   ├── Dockerfile
+   └── main.go
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Build the image and tag it as <code class="docutils literal"><span class="pre">gcr.io/&lt;YOUR_PROJECT_ID&gt;/chatserver:latest</span></code>:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span>docker build -t gcr.io/$(gcloud config get-value project)/chatserver:latest .
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Push the image to the container registry:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span>gcloud docker -- push gcr.io/$(gcloud config get-value project)/chatserver:latest
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Deploy the chatserver:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">kubectl</span> <span class="n">create</span> <span class="o">-</span><span class="n">f</span> <span class="n">chatserver</span><span class="o">.</span><span class="n">yaml</span>
+<span class="n">deployment</span><span class="o">.</span><span class="n">extensions</span><span class="o">/</span><span class="n">chatserver</span> <span class="n">created</span>
+<span class="n">service</span><span class="o">/</span><span class="n">chatserver</span> <span class="n">created</span>
+<span class="n">ingress</span><span class="o">.</span><span class="n">extensions</span><span class="o">/</span><span class="n">chatserver</span> <span class="n">created</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">The default for open connections for google cloud load balancing is 30 seconds (see docs at <a class="reference external" href="https://cloud.google.com/load-balancing/docs/https/#websocket_proxy_support">https://cloud.google.com/load-balancing/docs/https/#websocket_proxy_support</a> and <a class="reference external" href="https://github.com/kubernetes/ingress-gce/tree/master/examples/websocket#change-backend-timeout">https://github.com/kubernetes/ingress-gce/tree/master/examples/websocket#change-backend-timeout</a>). We need to configure the backend to have a longer timeout (in the next command we determine the backend of the <code class="docutils literal"><span class="pre">chatserver</span></code> ingress using a shell expansion, you can also determine this manually using the <code class="docutils literal"><span class="pre">kubectl</span> <span class="pre">describe</span> <span class="pre">ingress</span> <span class="pre">chatserver</span></code> command)</p>
+<blockquote>
+<div><pre class="literal-block">
+&gt; gcloud compute backend-services update $(kubectl get ing/chatserver -o jsonpath='{.metadata.annotations.ingress\.kubernetes\.io/backends}' | cut -d \&quot; -f2) --global --timeout=86400
+Updated [<a class="reference external" href="https://www.googleapis.com/compute/v1/projects/cs385-177320/global/backendServices/k8s-be-30671--6d35b1ad480831b4">https://www.googleapis.com/compute/v1/projects/cs385-177320/global/backendServices/k8s-be-30671--6d35b1ad480831b4</a>].
+</pre>
+<p>After the previous command has been run, it might take several minutes to take effectivity.</p>
+</div></blockquote>
+</li>
+<li><p class="first">We are ready to test the chat server. First confirm that you have one pod running:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">kubectl</span> <span class="n">get</span> <span class="n">pods</span> <span class="o">--</span><span class="n">selector</span> <span class="n">app</span><span class="o">=</span><span class="n">chatserver</span>
+<span class="n">NAME</span>                          <span class="n">READY</span>   <span class="n">STATUS</span>    <span class="n">RESTARTS</span>   <span class="n">AGE</span>
+<span class="n">chatserver</span><span class="o">-</span><span class="mi">545746784</span><span class="n">d</span><span class="o">-</span><span class="n">n4tvt</span>   <span class="mi">1</span><span class="o">/</span><span class="mi">1</span>     <span class="n">Running</span>   <span class="mi">0</span>          <span class="mi">24</span><span class="n">m</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">We need to determine the IP address of the chatserver Ingress (In case you are wondering, an Ingress is used to managed external access to resources. In Lab 3 we created an Ingress when we created a Load Balancer in <a class="reference internal" href="../lab03/lab03.html#lab03-part4"><span class="std std-ref">Part 4 of Lab No. 3.</span></a>. The Ingress Kubernetes resource type is documented at <a class="reference external" href="https://kubernetes.io/docs/concepts/services-networking/ingress/">https://kubernetes.io/docs/concepts/services-networking/ingress/</a>)</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">kubectl</span> <span class="n">get</span> <span class="n">ingress</span>
+<span class="n">NAME</span>         <span class="n">HOSTS</span>   <span class="n">ADDRESS</span>        <span class="n">PORTS</span>   <span class="n">AGE</span>
+<span class="n">chatserver</span>   <span class="o">*</span>       <span class="mf">35.244</span><span class="o">.</span><span class="mf">138.3</span>   <span class="mi">80</span>      <span class="mi">25</span><span class="n">m</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">We are ready to test the application in a browser.  Note that even though the Ingress might be reporting that is up, you might reveive 404 responses for several minuts (up to 10 minutes). Open a browser and enter the IP Address of the chatserver ingress. You should see a screen like the following:</p>
+<blockquote>
+<div><img alt="../../_images/chatserver.png" class="align-center" src="../../_images/chatserver.png" />
+<p>Notice how the UI reports to which pod you are connected.</p>
+</div></blockquote>
+</li>
+<li><p class="first">Type anything in the input box at the bottom of the page, and click send. Notice how the message is written to the screen. Open another browser tab/window. Notice how when you enter text on a window, it appears on all the other open windows. If you see a message that states “Connection closed” that means that the command that was run earlier to change the default timeout has not taken effectivity yet. You can still test the application in the meantime, but for no longer than 30 seconds.</p>
+</li>
+<li><p class="first">It is time now to try to scale this application. Execute the following command to add another instance of the chatserver application:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">kubectl</span> <span class="n">scale</span> <span class="n">deployment</span> <span class="n">chatserver</span> <span class="o">--</span><span class="n">replicas</span> <span class="mi">2</span>
+<span class="n">deployment</span><span class="o">.</span><span class="n">extensions</span> <span class="s2">&quot;chatserver&quot;</span> <span class="n">scaled</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Confirm that a new pod has been added:</p>
+<blockquote>
+<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">kubectl</span> <span class="n">get</span> <span class="n">pods</span> <span class="o">--</span><span class="n">selector</span> <span class="n">app</span><span class="o">=</span><span class="n">chatserver</span>
+<span class="n">NAME</span>                          <span class="n">READY</span>     <span class="n">STATUS</span>    <span class="n">RESTARTS</span>   <span class="n">AGE</span>
+<span class="n">chatserver</span><span class="o">-</span><span class="mi">545746784</span><span class="n">d</span><span class="o">-</span><span class="mi">4</span><span class="n">x8gg</span>   <span class="mi">1</span><span class="o">/</span><span class="mi">1</span>       <span class="n">Running</span>   <span class="mi">0</span>          <span class="mi">26</span><span class="n">s</span>
+<span class="n">chatserver</span><span class="o">-</span><span class="mi">545746784</span><span class="n">d</span><span class="o">-</span><span class="n">n4tvt</span>   <span class="mi">1</span><span class="o">/</span><span class="mi">1</span>       <span class="n">Running</span>   <span class="mi">0</span>          <span class="mi">21</span><span class="n">m</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Open several new windows of the chat application. Some of the new windows should report being connected to the new Pod. Enter text in one of the windows. At this point you should see that messages are only delivered to those clients that are connected to the same pod. This is a serious limitation, this application is not horizontally scalable!</p>
+</li>
+</ol>
+</div>
+<div class="section" id="enhancing-the-websockets-application-to-use-a-message-broker">
+<h1>Enhancing the Websockets Application to use a Message Broker<a class="headerlink" href="#enhancing-the-websockets-application-to-use-a-message-broker" title="Permalink to this headline">¶</a></h1>
+<p>In this section you will work on your own.  The objective is to enhance the Chat application.  A problem that the application currently has is that it can’t be scalled horizontally.  Think about how you would scale the application horizontally, and how would you be able to broadcast a message.  The idea here is that by using a message broker, we can write the messages sent to the application to a queue. By doing that , messages will be available to be picked by all the copies of the application that are running, so they can forward them to the clients that they are serving.</p>
+<p>Here’s what you need to do:</p>
+<ol class="arabic simple">
+<li>Modify the <code class="docutils literal"><span class="pre">handleWSConnections</span></code> function to write the messages received through the websocket connection to a Kafka topic instead of writing them to the “broadcast” channel.</li>
+<li>Modify <code class="docutils literal"><span class="pre">handleMessages</span></code> to use a Kafka consumer to read the messages from the topic instead of reading messages from the “broadcast” channel. You need to be aware that <code class="docutils literal"><span class="pre">partitionConsumer.Messages()</span></code> returns a <code class="docutils literal"><span class="pre">sarama.Message</span></code> type and that the broadcast channel contained arrays of bytes.</li>
+</ol>
+<div class="worksheet admonition">
+<p class="first admonition-title">What to turn in</p>
+<ol class="last arabic simple">
+<li>The updated source code for the websockets chatserver (<code class="docutils literal"><span class="pre">main.go</span></code>)</li>
+</ol>
+</div>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

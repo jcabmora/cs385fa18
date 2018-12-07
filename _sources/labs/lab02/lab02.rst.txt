@@ -36,6 +36,7 @@ Google cloud provides a service called "Cloud Shell" that has several tools prec
 #. SSH into the docker-01 host, install docker and the current user to the ``docker`` user group:
 
     .. parsed-literal::
+        > sudo apt-get update
         > sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
         > curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
         > sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
@@ -49,6 +50,8 @@ Google cloud provides a service called "Cloud Shell" that has several tools prec
 		> docker run hello-world
 
 Make sure that you read an understand the output of the last command.
+
+.. _lab02-part2:
 
 Part 2: Run applications in Docker
 ==================================
@@ -213,6 +216,7 @@ The Dockerfile that we used works, but it generates an image that is rather big 
         openjdk             8-jre-slim          837969d6f968        2 weeks ago         205 MB
 
 
+.. _lab02-part4:
 
 Part 4: Building a Python App
 =============================
